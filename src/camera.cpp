@@ -55,16 +55,31 @@ glm::vec3 Camera::getForward() const {
 }
 
 void Camera::move(GLFWwindow* window, float deltaTime) {
+	glm::vec3 move{ 0, 0, 0 };
+	glm::vec3 forward{ getForward() };
+	glm::vec3 left{ forward.x, 0, forward.z };
+	left = glm::normalize(left);
+	left = glm::rotate(glm::identity<glm::mat4>(), glm::radians(90.0f), glm::vec3{0, 1, 0}) * glm::vec4{left.x, left.y, left.z, 1};
+
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-		mPosition += glm::vec3{ 0, 0, -1 } *mSpeed * deltaTime;
+		move += forward;
 	}
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-		mPosition += glm::vec3{ 0, 0, 1 } *mSpeed * deltaTime;
+		move -= forward;
 	}
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-		mPosition += glm::vec3{ -1, 0, 0 } *mSpeed * deltaTime;
+		move += left;
 	}
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-		mPosition += glm::vec3{ 1, 0, 0 } *mSpeed * deltaTime;
+		move -= left;
 	}
+	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+		move += glm::vec3 { 0, 1, 0 };
+	}
+	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS) {
+		move -= glm::vec3{ 0, 1, 0 };
+	}
+ 	if (glm::length(move) != 0)
+		move = glm::normalize(move);
+	mPosition += move * mSpeed * deltaTime;
 }

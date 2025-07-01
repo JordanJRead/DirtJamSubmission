@@ -18,6 +18,7 @@ private:
 	static void mouseCallback(GLFWwindow* window, double xPos, double yPos) {
 		static_cast<App*>(glfwGetWindowUserPointer(window))->mCamera.mouseCallback(window, xPos, yPos);
 	}
+	void handleInput();
 };
 
 #endif

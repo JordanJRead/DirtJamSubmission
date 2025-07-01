@@ -13,10 +13,6 @@ public:
 	glm::mat4 getViewMatrix() const;
 	glm::mat4 getProjectionMatrix() const;
 
-	void print() {
-		std::cout << getForward().x << "\n";
-	}
-
 private:
 	float mPitch{ 0 }; // In radians
 	float mYaw{ 0 }; // In radians

@@ -15,6 +15,12 @@ App::App(int screenWidth, int screenHeight, GLFWwindow* window)
 	glViewport(0, 0, screenWidth, screenHeight);
 }
 
+void App::handleInput() {
+	if (glfwGetKey(mWindow, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+		glfwSetWindowShouldClose(mWindow, 1);
+	}
+}
+
 void App::loop() {
 	std::vector<float> vertices = {
 		-0.5, -0.5, 1, 0, 0,
@@ -38,11 +44,14 @@ void App::loop() {
 	double prevFrame{ glfwGetTime() };
 
 	while (!glfwWindowShouldClose(mWindow)) {
-		mCamera.print();
 		deltaTime = glfwGetTime() - prevFrame;
 		prevFrame = glfwGetTime();
 
+		// Input
+		handleInput();
 		mCamera.move(mWindow, (float)deltaTime);
+
+		// Rendering
 		mHelloShader.setMatrix4("view", mCamera.getViewMatrix());
 		mHelloShader.setMatrix4("proj", mCamera.getProjectionMatrix());
 
