@@ -2,6 +2,10 @@
 #include <vector>
 #include "vertexarray.h"
 #include <iostream>
+#include "plane.h"
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_glfw.h"
+#include "imgui/imgui_impl_opengl3.h"
 
 App::App(int screenWidth, int screenHeight, GLFWwindow* window)
 	: mCamera{ screenWidth, screenHeight }
@@ -10,6 +14,7 @@ App::App(int screenWidth, int screenHeight, GLFWwindow* window)
 {
 	glfwSetWindowUserPointer(mWindow, this);
 	glfwSetCursorPosCallback(mWindow, mouseCallback);
+	glfwSetKeyCallback(mWindow, keyCallback);
 	glfwSetInputMode(mWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	glEnable(GL_MULTISAMPLE);
 	glViewport(0, 0, screenWidth, screenHeight);
@@ -35,15 +40,23 @@ void App::loop() {
 	std::vector<int> attribs = {
 		2, 3
 	};
-	VertexArray vao{ vertices, indices, attribs };
+	VertexArray vertexArray;
+	vertexArray.create(vertices, indices, attribs);
 
+	vertexArray.updateVertices(vertices, indices);
+
+	Plane plane{ 2, 3, {}, 0 };
 	mHelloShader.use();
-	vao.use();
+	vertexArray.use();
+	plane.useVAO();
 
 	double deltaTime{ 0 };
 	double prevFrame{ glfwGetTime() };
 
+	bool wireFrame{ false };
+
 	while (!glfwWindowShouldClose(mWindow)) {
+		glfwPollEvents();
 		deltaTime = glfwGetTime() - prevFrame;
 		prevFrame = glfwGetTime();
 
@@ -56,10 +69,25 @@ void App::loop() {
 		mHelloShader.setMatrix4("proj", mCamera.getProjectionMatrix());
 
 		glClear(GL_COLOR_BUFFER_BIT);
-		glDrawElements(GL_TRIANGLES, vao.getIndexCount(), GL_UNSIGNED_INT, 0);
+
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+
+		glDrawElements(wireFrame ? GL_LINES : GL_TRIANGLES, plane.getIndexCount(), GL_UNSIGNED_INT, 0);
+
+		ImGui::Begin("TEST WINDOW");
+		ImGui::Text("Hello World");
+		ImGui::Checkbox("Wire", &wireFrame);
+		ImGui::End();
+
+		ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 		glfwSwapBuffers(mWindow);
-		glfwPollEvents();
 	}
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+	ImGui::DestroyContext();
 	glfwTerminate();
 }

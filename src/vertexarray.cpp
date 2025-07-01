@@ -1,8 +1,7 @@
 #include <vertexarray.h>
 
-VertexArray::VertexArray(const std::vector<float>& vertexData, const std::vector<unsigned int>& vertexIndices, const std::vector<int>& vertexAttribCounts)
-	: mIndexCount{ vertexIndices.size() }
-{
+void VertexArray::create(const std::vector<float>& vertexData, const std::vector<unsigned int>& vertexIndices, const std::vector<int>& vertexAttribCounts) {
+	mIndexCount = vertexIndices.size();
 	mVAO.use();
 
 	mVBO.use(GL_ARRAY_BUFFER);
@@ -18,13 +17,19 @@ VertexArray::VertexArray(const std::vector<float>& vertexData, const std::vector
 
 	int currentByteOffset{ 0 };
 	for (int i{ 0 }; i < vertexAttribCounts.size(); ++i) {
-		//glEnableVertexAttribArray(i);
-		//glVertexAttribPointer(i, vertexAttribCounts[i], GL_FLOAT, GL_FALSE, bytesPerVertex, (void*)currentByteOffset);
+		glEnableVertexAttribArray(i);
+		glVertexAttribPointer(i, vertexAttribCounts[i], GL_FLOAT, GL_FALSE, bytesPerVertex, (void*)currentByteOffset);
 		currentByteOffset += vertexAttribCounts[i] * sizeof(float);
 	}
+}
 
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, bytesPerVertex, 0);
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, bytesPerVertex, (void*)(2 * sizeof(float)));
+void VertexArray::updateVertices(const std::vector<float>& vertexData, const std::vector<unsigned int>& vertexIndices) {
+	mIndexCount = vertexIndices.size();
+	mVAO.use();
+
+	mVBO.use(GL_ARRAY_BUFFER);
+	glBufferData(GL_ARRAY_BUFFER, vertexData.size() * sizeof(float), &(vertexData[0]), GL_STATIC_DRAW);
+
+	mEBO.use(GL_ELEMENT_ARRAY_BUFFER);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, vertexIndices.size() * sizeof(unsigned int), &(vertexIndices[0]), GL_STATIC_DRAW);
 }

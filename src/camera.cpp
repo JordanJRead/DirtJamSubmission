@@ -12,9 +12,13 @@ Camera::Camera(int screenWidth, int screenHeight, const glm::vec3& position, flo
 	mYaw = 3.1415926535897932384626433832795 / 2.0f;
 }
 
-void Camera::mouseCallback(GLFWwindow* window, double xPos, double yPos) {
+void Camera::mouseCallback(GLFWwindow* window, double xPos, double yPos, bool isCursorHidden) {
 	static float pi{ 3.1415926535897932384626433832795 };
 
+	if (!isCursorHidden) {
+		isFirstLook = true;
+		return;
+	}
 	if (isFirstLook) {
 		isFirstLook = false;
 		mPrevX = xPos;

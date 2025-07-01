@@ -8,7 +8,7 @@
 class Camera {
 public:
 	Camera(int screenWidth, int screenHeight, const glm::vec3& position = { 0, 0, 0 }, float speed = 1, float sens = 0.005f);
-	void mouseCallback(GLFWwindow* window, double xPos, double yPos);
+	void mouseCallback(GLFWwindow* window, double xPos, double yPos, bool isCursorHidden);
 	void move(GLFWwindow* window, float deltaTime);
 	glm::mat4 getViewMatrix() const;
 	glm::mat4 getProjectionMatrix() const;
