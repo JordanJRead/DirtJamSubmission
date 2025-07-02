@@ -19,6 +19,9 @@ public:
 	void setFloat(std::string_view name, float f) {
 		glUniform1f(glGetUniformLocation(mID, name.data()), f);
 	}
+	void setUInt(std::string_view name, unsigned int n) {
+		glUniform1ui(glGetUniformLocation(mID, name.data()), n);
+	}
 
 private:
 	unsigned int mID;

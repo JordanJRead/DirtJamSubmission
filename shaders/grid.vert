@@ -4,9 +4,13 @@ layout(location = 0) in vec2 vPos;
 
 uniform mat4 view;
 uniform mat4 proj;
+uniform float scale;
 
-out vec3 fragColor;
+out vec3 worldPos;
+out vec3 viewPos;
 
 void main() {
-	gl_Position = proj * view * vec4(vPos.x, 0, vPos.y, 1);
+	worldPos = vec3(vPos.x * scale, 0, vPos.y * scale);
+	gl_Position = proj * view * vec4(worldPos, 1);
+	viewPos = (view * vec4(worldPos, 1)).xyz;
 }
