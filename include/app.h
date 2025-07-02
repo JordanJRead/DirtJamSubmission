@@ -13,7 +13,7 @@ public:
 
 private:
 	Camera mCamera;
-	Shader mHelloShader;
+	Shader mTerrainShader;
 	GLFWwindow* mWindow;
 	bool mIsCursorHidden{ true };
 
