@@ -41,9 +41,10 @@ void App::loop() {
 	int labelGUI{ 0 };
 
 	int octaveCountGUI{ 1 };
-	float initialAmplitudeGUI{ 5 };
-	float amplitudeDecayGUI{ 0.5f };
+	float initialAmplitudeGUI{ 3 };
+	float amplitudeDecayGUI{ 0.1f };
 	float spreadFactorGUI{ 2 };
+	bool perFragNormalsGUI{ false };
 
 	Plane terrainPlane{ planeWidthGUI, planeVertexDensityGUI, {}, 0};
 	Plane worldGridPlane{ 100, 1, {}, 0 };
@@ -86,6 +87,7 @@ void App::loop() {
 		mTerrainShader.setFloat("initialAmplitude", initialAmplitudeGUI);
 		mTerrainShader.setFloat("amplitudeDecay", amplitudeDecayGUI);
 		mTerrainShader.setFloat("spreadFactor", spreadFactorGUI);
+		mTerrainShader.setBool("perFragNormals", perFragNormalsGUI);
 
 		// Render plane
 		mTerrainShader.setFloat("scale", terrainPlane.getWidth());
@@ -110,6 +112,7 @@ void App::loop() {
 		ImGui::Begin("TEST WINDOW");
 		ImGui::Text("FPS: %f", 1 / deltaTime);
 		ImGui::Checkbox("Wire", &wireFrameGUI);
+		ImGui::Checkbox("Frag normals", &perFragNormalsGUI);
 		ImGui::InputInt("Plane width", &planeWidthGUI, 1, 10);
 		ImGui::InputInt("Plane vertex density", &planeVertexDensityGUI, 1, 10);
 		ImGui::InputInt("Label", &labelGUI, 1, 10);

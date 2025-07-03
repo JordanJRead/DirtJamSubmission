@@ -13,7 +13,8 @@ uniform float initialAmplitude;
 uniform float amplitudeDecay;
 uniform float spreadFactor;
 
-out flat float n;
+out vec3 normal;
+out vec4 latticePos;
 
 uint rand(uint n) {
 	uint state = n * 747796405u + 2891336453u;
@@ -62,7 +63,11 @@ vec2 quinticInterpolation(vec2 t) {
 	return t * t * t * (t * (t * vec2(6) - vec2(15)) + vec2(10));
 }
 
-float perlin(vec2 pos) {
+vec2 quinticDerivative(vec2 t) {
+	return vec2(30) * t * t * (t * (t - vec2(2)) + vec2(1));
+}
+
+vec3 perlin(vec2 pos) {
 	int x0 = getClosestInt(floor(pos.x));
 	int x1 = getClosestInt(ceil(pos.x));
 	int y0 = getClosestInt(floor(pos.y));
@@ -94,14 +99,16 @@ float perlin(vec2 pos) {
 
 	// From https://iquilezles.org/articles/gradientnoise/ and Acerola's github
 	vec2 u = quinticInterpolation(relPoint);
+	vec2 du = quinticDerivative(relPoint);
 	float noise = d00 + u.x * (d10 - d00) + u.y * (d01 - d00) + u.x * u.y * (d00 - d10 - d01 + d11);
+	vec2 tangents = g00 + u.x * (g10 - g00) + u.y * (g01 - g00) + u.x * u.y * (g00 - g10 - g01 + g11) + du * (u.yx * (d00 - d10 - d01 + d11) + vec2(d10, d01) - d00);
 
-	return noise * 0.5f + 0.5;
+	return vec3(noise, tangents.x, tangents.y);
 }
 
 void main() {
 	vec4 worldPos = vec4(vPos.x * scale, 0, vPos.y * scale, 1);
-	vec4 latticePos = vec4(worldPos.xyz / latticeWidth, 1);
+	latticePos = vec4(worldPos.xyz / latticeWidth, 1);
 
 	/*
 	
@@ -114,13 +121,15 @@ uniform float spreadFactor;
 
 	float amplitude = initialAmplitude;
 	float spread = 1;
+	vec2 tangents = vec2(0, 0);
 	for (int i = 0; i < octaveCount; ++i) {
 		vec2 samplePos = latticePos.xz * spread;
-		worldPos += vec4(0, amplitude * perlin(samplePos), 0, 0);
+		vec3 perlinData = perlin(samplePos);
+		worldPos += vec4(0, amplitude * perlinData.x, 0, 0);
+		tangents += perlinData.yz * amplitude;
 		amplitude *= amplitudeDecay;
 		spread *= spreadFactor;
 	}
+	normal = normalize(vec3(-tangents.x, 1, -tangents.y));
 	gl_Position = proj * view * worldPos;
-
-	n = perlin(latticePos.xz);
 }
