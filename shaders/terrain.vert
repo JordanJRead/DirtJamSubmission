@@ -9,7 +9,6 @@ uniform float scale;
 uniform float latticeWidth;
 
 out flat float n;
-out vec3 color;
 
 uint rand(uint n) {
 	uint state = n * 747796405u + 2891336453u;
@@ -82,27 +81,22 @@ float perlin(vec2 pos) {
 	vec2 v11 = relPoint - vec2(1, 1);
 	vec2 v01 = vec2(v00.x, v11.y);
 	vec2 v10 = vec2(v11.x, v00.y);
-
-	float d00 = dot(v00, g00) * 0.5 + 0.5; // Remapping makes it look right but I couldn't find anything saying that you have to remap the dot products?
-	float d01 = dot(v01, g01) * 0.5 + 0.5;
-	float d10 = dot(v10, g10) * 0.5 + 0.5;
-	float d11 = dot(v11, g11) * 0.5 + 0.5;
+	
+	float d00 = dot(v00, g00);
+	float d01 = dot(v01, g01);
+	float d10 = dot(v10, g10);
+	float d11 = dot(v11, g11);
 
 	// From https://iquilezles.org/articles/gradientnoise/ and Acerola's github
 	vec2 u = quinticInterpolation(relPoint);
 	float noise = d00 + u.x * (d10 - d00) + u.y * (d01 - d00) + u.x * u.y * (d00 - d10 - d01 + d11);
 
-	//float horBottomLerp = d00 + u.x * (d10 - d00);
-	//float horTopLerp = d01 + u.x * (d11 - d01);
-	//float bilerp = horBottomLerp + u.y * (horTopLerp - horBottomLerp);
-	//return bilerp;
-	return noise;
+	return noise * 0.5f + 0.5;
 }
 
 void main() {
-	color = vec3(0, 0, 0);
 	vec4 worldPos = vec4(vPos.x * scale, 0, vPos.y * scale, 1);
 	vec4 latticePos = vec4(worldPos.xyz / latticeWidth, 1);
-	gl_Position = proj * view * worldPos;
+	gl_Position = proj * view * (worldPos + vec4(0, perlin(latticePos.xz) * 5, 0, 0));
 	n = perlin(latticePos.xz);
 }

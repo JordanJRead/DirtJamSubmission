@@ -22,6 +22,7 @@ App::App(int screenWidth, int screenHeight, GLFWwindow* window)
 	glPointSize(5);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_DEPTH);
 }
 
 void App::handleInput() {
@@ -72,7 +73,7 @@ void App::loop() {
 		mCamera.move(mWindow, (float)deltaTime);
 
 		/// Rendering
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// Terrain
 		mTerrainShader.use();
@@ -93,7 +94,7 @@ void App::loop() {
 
 		// Render plane
 		mTerrainShader.setFloat("scale", terrainPlane.getWidth());
-		mTerrainShader.setFloat("latticeWidth", 1);
+		mTerrainShader.setFloat("latticeWidth", 3);
 
 		terrainPlane.useVAO();
 		glDrawElements(wireFrameGUI ? GL_POINTS : GL_TRIANGLES, terrainPlane.getIndexCount(), GL_UNSIGNED_INT, 0);
