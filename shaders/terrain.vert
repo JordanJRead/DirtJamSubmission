@@ -8,6 +8,11 @@ uniform mat4 proj;
 uniform float scale;
 uniform float latticeWidth;
 
+uniform int octaveCount;
+uniform float initialAmplitude;
+uniform float amplitudeDecay;
+uniform float spreadFactor;
+
 out flat float n;
 
 uint rand(uint n) {
@@ -97,6 +102,25 @@ float perlin(vec2 pos) {
 void main() {
 	vec4 worldPos = vec4(vPos.x * scale, 0, vPos.y * scale, 1);
 	vec4 latticePos = vec4(worldPos.xyz / latticeWidth, 1);
-	gl_Position = proj * view * (worldPos + vec4(0, perlin(latticePos.xz) * 5, 0, 0));
+
+	/*
+	
+uniform int octaveCount;
+uniform float initialAmplitude;
+uniform float amplitudeDecay;
+uniform float spreadFactor;
+
+	*/
+
+	float amplitude = initialAmplitude;
+	float spread = 1;
+	for (int i = 0; i < octaveCount; ++i) {
+		vec2 samplePos = latticePos.xz * spread;
+		worldPos += vec4(0, amplitude * perlin(samplePos), 0, 0);
+		amplitude *= amplitudeDecay;
+		spread *= spreadFactor;
+	}
+	gl_Position = proj * view * worldPos;
+
 	n = perlin(latticePos.xz);
 }

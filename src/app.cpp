@@ -32,25 +32,6 @@ void App::handleInput() {
 }
 
 void App::loop() {
-	//std::vector<float> vertices = {
-	//	-0.5, -0.5, 1, 0, 0,
-	//	 0.5, -0.5, 0, 1, 0,
-	//	 0,    0.5, 0, 0, 1
-	//};
-
-	//std::vector<unsigned int> indices = {
-	//	0, 1, 2
-	//};
-
-	//std::vector<int> attribs = {
-	//	2, 3
-	//};
-	//VertexArray vertexArray;
-	//vertexArray.create(vertices, indices, attribs);
-
-	//vertexArray.updateVertices(vertices, indices);
-
-
 	double deltaTime{ 0 };
 	double prevFrame{ glfwGetTime() };
 
@@ -58,6 +39,11 @@ void App::loop() {
 	int planeWidthGUI{ 2 };
 	int planeVertexDensityGUI{ 3 };
 	int labelGUI{ 0 };
+
+	int octaveCountGUI{ 1 };
+	float initialAmplitudeGUI{ 5 };
+	float amplitudeDecayGUI{ 0.5f };
+	float spreadFactorGUI{ 2 };
 
 	Plane terrainPlane{ planeWidthGUI, planeVertexDensityGUI, {}, 0};
 	Plane worldGridPlane{ 100, 1, {}, 0 };
@@ -92,6 +78,15 @@ void App::loop() {
 			terrainPlane.rebuild(planeWidthGUI, planeVertexDensityGUI);
 		}
 
+		// Terrain variables
+		if (octaveCountGUI <= 0)
+			octaveCountGUI = 1;
+		mTerrainShader.setInt("octaveCount", octaveCountGUI);
+
+		mTerrainShader.setFloat("initialAmplitude", initialAmplitudeGUI);
+		mTerrainShader.setFloat("amplitudeDecay", amplitudeDecayGUI);
+		mTerrainShader.setFloat("spreadFactor", spreadFactorGUI);
+
 		// Render plane
 		mTerrainShader.setFloat("scale", terrainPlane.getWidth());
 		mTerrainShader.setFloat("latticeWidth", 3);
@@ -118,6 +113,11 @@ void App::loop() {
 		ImGui::InputInt("Plane width", &planeWidthGUI, 1, 10);
 		ImGui::InputInt("Plane vertex density", &planeVertexDensityGUI, 1, 10);
 		ImGui::InputInt("Label", &labelGUI, 1, 10);
+
+		ImGui::DragInt("Octaves", &octaveCountGUI, 0.1f, 1, 50);
+		ImGui::DragFloat("Amplitude", &initialAmplitudeGUI, 0.1f);
+		ImGui::DragFloat("Amplitude decay", &amplitudeDecayGUI, 0.1f);
+		ImGui::DragFloat("Spread", &spreadFactorGUI, 0.1f);
 		ImGui::End();
 
 		ImGui::Render();

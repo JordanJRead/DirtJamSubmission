@@ -22,6 +22,9 @@ public:
 	void setUInt(std::string_view name, unsigned int n) {
 		glUniform1ui(glGetUniformLocation(mID, name.data()), n);
 	}
+	void setInt(std::string_view name, int n) {
+		glUniform1i(glGetUniformLocation(mID, name.data()), n);
+	}
 	void setBool(std::string_view name, bool b) {
 		glUniform1ui(glGetUniformLocation(mID, name.data()), b);
 	}
