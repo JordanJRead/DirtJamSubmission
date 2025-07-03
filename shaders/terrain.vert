@@ -106,30 +106,32 @@ vec3 perlin(vec2 pos) {
 	return vec3(noise, tangents.x, tangents.y);
 }
 
+vec3 getTerrainInfo(vec2 pos) {
+	vec3 terrainInfo = vec3(0, 0, 0);
+
+	float amplitude = initialAmplitude;
+	float spread = 1;
+
+	for (int i = 0; i < octaveCount; ++i) {
+		vec2 samplePos = latticePos.xz * spread;
+		vec3 perlinData = perlin(samplePos);
+
+		terrainInfo.x += amplitude * perlinData.x;
+		terrainInfo.yz += amplitude * perlinData.yz;
+
+		amplitude *= amplitudeDecay;
+		spread *= spreadFactor;
+	}
+	return terrainInfo;
+}
+
 void main() {
 	vec4 worldPos = vec4(vPos.x * scale, 0, vPos.y * scale, 1);
 	latticePos = vec4(worldPos.xyz / latticeWidth, 1);
 
-	/*
-	
-uniform int octaveCount;
-uniform float initialAmplitude;
-uniform float amplitudeDecay;
-uniform float spreadFactor;
+	vec3 terrainInfo = getTerrainInfo(latticePos.xz);
+	worldPos.y += terrainInfo.x;
 
-	*/
-
-	float amplitude = initialAmplitude;
-	float spread = 1;
-	vec2 tangents = vec2(0, 0);
-	for (int i = 0; i < octaveCount; ++i) {
-		vec2 samplePos = latticePos.xz * spread;
-		vec3 perlinData = perlin(samplePos);
-		worldPos += vec4(0, amplitude * perlinData.x, 0, 0);
-		tangents += perlinData.yz * amplitude;
-		amplitude *= amplitudeDecay;
-		spread *= spreadFactor;
-	}
-	normal = normalize(vec3(-tangents.x, 1, -tangents.y));
+	normal = normalize(vec3(-terrainInfo.y, 1, -terrainInfo.z));
 	gl_Position = proj * view * worldPos;
 }

@@ -10,6 +10,7 @@ uniform float initialAmplitude;
 uniform float amplitudeDecay;
 uniform float spreadFactor;
 
+uniform bool perFragNormals;
 
 uint rand(uint n) {
 	uint state = n * 747796405u + 2891336453u;
@@ -98,35 +99,39 @@ vec3 perlin(vec2 pos) {
 	float noise = d00 + u.x * (d10 - d00) + u.y * (d01 - d00) + u.x * u.y * (d00 - d10 - d01 + d11);
 	vec2 tangents = g00 + u.x * (g10 - g00) + u.y * (g01 - g00) + u.x * u.y * (g00 - g10 - g01 + g11) + du * (u.yx * (d00 - d10 - d01 + d11) + vec2(d10, d01) - d00);
 
-	return vec3(noise + 1, tangents.x, tangents.y);
+	return vec3(noise, tangents.x, tangents.y);
 }
 
-uniform bool perFragNormals;
+vec3 getTerrainInfo(vec2 pos) {
+	vec3 terrainInfo = vec3(0, 0, 0);
 
-vec3 repeatedPerlin(vec2 pos) {
 	float amplitude = initialAmplitude;
 	float spread = 1;
-	vec2 tangents = vec2(0, 0);
+
 	for (int i = 0; i < octaveCount; ++i) {
 		vec2 samplePos = latticePos.xz * spread;
 		vec3 perlinData = perlin(samplePos);
-		tangents += perlinData.yz * amplitude;
+
+		terrainInfo.x += amplitude * perlinData.x;
+		terrainInfo.yz += amplitude * perlinData.yz;
+
 		amplitude *= amplitudeDecay;
 		spread *= spreadFactor;
 	}
-	return vec3(0, tangents);
+	return terrainInfo;
 }
 
 void main() {
 	
-	vec2 tangents = repeatedPerlin(latticePos.xz).yz;
-	vec3 fragNormal = normalize(vec3(-tangents.x, 1, -tangents.y));
+	vec3 terrainInfo = getTerrainInfo(latticePos.xz);
 
-
+	vec3 fragNormal = normalize(vec3(-terrainInfo.y, 1, -terrainInfo.z));
 
 	vec3 albedo = vec3(0.58, 0.35, 0.22);
+
 	vec3 lightDir = normalize(vec3(0, 1, 0));
 	float diffuse = max(0, dot(lightDir, perFragNormals ? fragNormal : normal));
 	float ambient = 0.2;
+
 	FragColor = vec4((diffuse + ambient) * albedo, 1);
 }
