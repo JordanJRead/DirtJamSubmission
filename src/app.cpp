@@ -36,15 +36,16 @@ void App::loop() {
 	double prevFrame{ glfwGetTime() };
 
 	bool wireFrameGUI{ false };
-	int planeWidthGUI{ 2 };
-	int planeVertexDensityGUI{ 3 };
+	int planeWidthGUI{ 100 };
+	int planeVertexDensityGUI{ 20 };
 	int labelGUI{ 0 };
 
 	int octaveCountGUI{ 1 };
 	float initialAmplitudeGUI{ 3 };
-	float amplitudeDecayGUI{ 0.1f };
+	float amplitudeDecayGUI{ 0.5f };
 	float spreadFactorGUI{ 2 };
 	bool perFragNormalsGUI{ false };
+	float latticeWidthGUI{ 3 };
 
 	Plane terrainPlane{ planeWidthGUI, planeVertexDensityGUI, {}, 0};
 	Plane worldGridPlane{ 100, 1, {}, 0 };
@@ -91,7 +92,7 @@ void App::loop() {
 
 		// Render plane
 		mTerrainShader.setFloat("scale", terrainPlane.getWidth());
-		mTerrainShader.setFloat("latticeWidth", 3);
+		mTerrainShader.setFloat("latticeWidth", latticeWidthGUI);
 
 		terrainPlane.useVAO();
 		glDrawElements(wireFrameGUI ? GL_POINTS : GL_TRIANGLES, terrainPlane.getIndexCount(), GL_UNSIGNED_INT, 0);
@@ -119,8 +120,9 @@ void App::loop() {
 
 		ImGui::DragInt("Octaves", &octaveCountGUI, 0.1f, 1, 50);
 		ImGui::DragFloat("Amplitude", &initialAmplitudeGUI, 0.1f);
-		ImGui::DragFloat("Amplitude decay", &amplitudeDecayGUI, 0.1f);
-		ImGui::DragFloat("Spread", &spreadFactorGUI, 0.1f);
+		ImGui::DragFloat("Amplitude decay", &amplitudeDecayGUI, 0.03f);
+		ImGui::DragFloat("Spread", &spreadFactorGUI, 0.01f);
+		ImGui::DragFloat("Lattice width", &latticeWidthGUI, 0.1f);
 		ImGui::End();
 
 		ImGui::Render();

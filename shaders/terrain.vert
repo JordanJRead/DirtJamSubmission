@@ -14,6 +14,7 @@ uniform float amplitudeDecay;
 uniform float spreadFactor;
 
 out vec3 normal;
+out vec4 worldPos;
 out vec4 latticePos;
 
 uint rand(uint n) {
@@ -106,14 +107,14 @@ vec3 perlin(vec2 pos) {
 	return vec3(noise, tangents.x, tangents.y);
 }
 
-vec3 getTerrainInfo(vec2 pos) {
+vec3 getTerrainInfo(vec3 worldPos) {
 	vec3 terrainInfo = vec3(0, 0, 0);
 
 	float amplitude = initialAmplitude;
 	float spread = 1;
 
 	for (int i = 0; i < octaveCount; ++i) {
-		vec2 samplePos = latticePos.xz * spread;
+		vec2 samplePos = worldPos.xz / latticeWidth * spread;
 		vec3 perlinData = perlin(samplePos);
 
 		terrainInfo.x += amplitude * perlinData.x;
@@ -122,14 +123,15 @@ vec3 getTerrainInfo(vec2 pos) {
 		amplitude *= amplitudeDecay;
 		spread *= spreadFactor;
 	}
+	terrainInfo.yz /= latticeWidth;
 	return terrainInfo;
 }
 
 void main() {
-	vec4 worldPos = vec4(vPos.x * scale, 0, vPos.y * scale, 1);
+	worldPos = vec4(vPos.x * scale, 0, vPos.y * scale, 1);
 	latticePos = vec4(worldPos.xyz / latticeWidth, 1);
 
-	vec3 terrainInfo = getTerrainInfo(latticePos.xz);
+	vec3 terrainInfo = getTerrainInfo(worldPos.xyz);
 	worldPos.y += terrainInfo.x;
 
 	normal = normalize(vec3(-terrainInfo.y, 1, -terrainInfo.z));

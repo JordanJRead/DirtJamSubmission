@@ -2,6 +2,7 @@
 #define PI 3.141592653589793238462
 
 in vec3 normal;
+in vec4 worldPos;
 in vec4 latticePos;
 out vec4 FragColor;
 
@@ -9,6 +10,7 @@ uniform int octaveCount;
 uniform float initialAmplitude;
 uniform float amplitudeDecay;
 uniform float spreadFactor;
+uniform float latticeWidth;
 
 uniform bool perFragNormals;
 
@@ -102,14 +104,14 @@ vec3 perlin(vec2 pos) {
 	return vec3(noise, tangents.x, tangents.y);
 }
 
-vec3 getTerrainInfo(vec2 pos) {
+vec3 getTerrainInfo(vec3 worldPos) {
 	vec3 terrainInfo = vec3(0, 0, 0);
 
 	float amplitude = initialAmplitude;
 	float spread = 1;
 
 	for (int i = 0; i < octaveCount; ++i) {
-		vec2 samplePos = latticePos.xz * spread;
+		vec2 samplePos = worldPos.xz / latticeWidth * spread;
 		vec3 perlinData = perlin(samplePos);
 
 		terrainInfo.x += amplitude * perlinData.x;
@@ -118,20 +120,33 @@ vec3 getTerrainInfo(vec2 pos) {
 		amplitude *= amplitudeDecay;
 		spread *= spreadFactor;
 	}
+	terrainInfo.yz /= latticeWidth;
 	return terrainInfo;
 }
 
+float easeInExpo(float x) {
+	return x == 0 ? 0 : pow(2.0, 10 * x - 10);
+}
+
 void main() {
-	
-	vec3 terrainInfo = getTerrainInfo(latticePos.xz);
 
-	vec3 fragNormal = normalize(vec3(-terrainInfo.y, 1, -terrainInfo.z));
+	vec3 fragNormal =vec3(0, 0, 0);
+	if (perFragNormals) {
+		vec3 terrainInfo = getTerrainInfo(worldPos.xyz);
+		fragNormal = normalize(vec3(-terrainInfo.y, 1, -terrainInfo.z));
+	}
 
-	vec3 albedo = vec3(0.58, 0.35, 0.22);
+	vec3 dirtAlbedo = vec3(0.58, 0.35, 0.22);
+	vec3 grassAlbedo = vec3(0, 0.6, 0);
 
 	vec3 lightDir = normalize(vec3(0, 1, 0));
 	float diffuse = max(0, dot(lightDir, perFragNormals ? fragNormal : normal));
-	float ambient = 0.2;
+	float ambient = 0;
+
+	//vec3 biasedNormal = (perFragNormals ? fragNormal : normal) * vec3(0.4, 0, 0.4);
+
+	vec3 albedo = dirtAlbedo + easeInExpo(diffuse) * (grassAlbedo - dirtAlbedo);
+	albedo = dirtAlbedo + (diffuse < 0.7 ? 0 : 1) * (grassAlbedo - dirtAlbedo);
 
 	FragColor = vec4((diffuse + ambient) * albedo, 1);
 }
