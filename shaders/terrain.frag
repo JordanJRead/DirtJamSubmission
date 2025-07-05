@@ -146,7 +146,7 @@ void main() {
 	//vec3 biasedNormal = (perFragNormals ? fragNormal : normal) * vec3(0.4, 0, 0.4);
 
 	vec3 albedo = dirtAlbedo + easeInExpo(diffuse) * (grassAlbedo - dirtAlbedo);
-	albedo = dirtAlbedo + (diffuse < 0.7 ? 0 : 1) * (grassAlbedo - dirtAlbedo);
+	albedo = dirtAlbedo + (diffuse < 0.8 ? 0 : 1) * (grassAlbedo - dirtAlbedo);
 
 	FragColor = vec4((diffuse + ambient) * albedo, 1);
 }
