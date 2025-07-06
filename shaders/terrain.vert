@@ -8,10 +8,12 @@ uniform mat4 proj;
 uniform float scale;
 uniform float latticeWidth;
 
-uniform int octaveCount;
-uniform float initialAmplitude;
-uniform float amplitudeDecay;
-uniform float spreadFactor;
+layout(std140) uniform terrainParams {
+	int octaveCount;
+	float initialAmplitude;
+	float amplitudeDecay;
+	float spreadFactor;
+};
 
 out vec3 normal;
 out vec4 worldPos;

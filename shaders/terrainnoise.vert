@@ -8,4 +8,5 @@ uniform float scale;
 
 void main() {
 	latticePos = vPos * scale;
+	gl_Position = vec4(vPos, 0, 1);
 }
