@@ -42,13 +42,13 @@ void App::loop() {
 	double prevFrame{ glfwGetTime() };
 
 	bool wireFrameGUI{ false };
-	int planeWidthGUI{ 100 };
-	int planeVertexDensityGUI{ 40 };
+	int planeWidthGUI{ 50 };
+	int planeVertexDensityGUI{ 60 };
 	int labelGUI{ 0 };
 	float samplingScaleGUI{ 41.4 };
 
-	TerrainParamsBuffer terrainParameters{ 7, 10.6, 0.5, 2.02 };
-	Terrain terrainImageGenerator{ 1024, 2, mScreenWidth, mScreenHeight };
+	TerrainParamsBuffer terrainParameters{ 10, 10.6, 0.47, 2.02 };
+	Terrain terrainImageGenerator{ 1024 * 4, 2, mScreenWidth, mScreenHeight };
 
 	bool perFragNormalsGUI{ true };
 
