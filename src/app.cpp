@@ -47,7 +47,7 @@ void App::loop() {
 	float samplingScaleGUI{ 41.4 };
 
 	TerrainParamsBuffer terrainParameters{ 7, 10.6, 0.5, 2.02 };
-	Terrain terrainImageGenerator{ 1024 * 8, 2, mScreenWidth, mScreenHeight };
+	Terrain terrainImageGenerator{ 1024, 2, mScreenWidth, mScreenHeight };
 
 	bool perFragNormalsGUI{ true };
 
