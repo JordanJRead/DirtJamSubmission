@@ -20,7 +20,12 @@ uniform sampler2D terrainImage;
 out vec2 flatWorldPos;
 
 vec3 getTerrainInfo(vec2 worldPos) {
-	vec3 terrainInfo = texture(terrainImage, (worldPos / samplingScale) + vec2(0.5)).xyz;
+	vec2 sampleCoord = (worldPos / samplingScale) + vec2(0.5);
+	vec3 terrainInfo = texture(terrainImage, sampleCoord).xyz;
+
+	if (sampleCoord.x > 1 || sampleCoord.x < 0 || sampleCoord.y > 1 || sampleCoord.y < 0)
+		terrainInfo = vec3(-initialAmplitude, 0, 0);
+
 	terrainInfo.yz /= samplingScale;
 	return terrainInfo;
 }
