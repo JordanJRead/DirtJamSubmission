@@ -30,6 +30,10 @@ float easeInExpo(float x) {
 	return x == 0 ? 0 : pow(2.0, 10 * x - 10);
 }
 
+float easeInOutQuint(float x) {
+	return x < 0.5 ? 16 * x * x * x * x * x : 1 - pow(-2.0 * x + 2, 5.0) / 2;
+}
+
 void main() {
 
 	vec3 terrainInfo = getTerrainInfo(flatWorldPos);
@@ -48,8 +52,8 @@ void main() {
 	albedo = dirtAlbedo + (diffuse < 0.8 ? 0 : 1) * (grassAlbedo - dirtAlbedo);
 
 	float distFromCamera = length(viewPos);
-	float density = 0.07;
-	float visibility = 1 / (exp(distFromCamera * density));
+	float maxDist = 25;
+	float visibility = 1 - easeInOutQuint(clamp(distFromCamera / maxDist, 0, 1));
 
 	vec3 preFogColor = (diffuse + ambient) * albedo;
 	vec3 postFogColor = visibility * preFogColor + (1 - visibility) * vec3(0.5, 0.5, 0.5);
