@@ -2,14 +2,16 @@
 #define PI 3.141592653589793238462
 
 in vec3 normal;
-in vec4 worldPos;
-in vec4 latticePos;
+in vec2 latticePos;
 out vec4 FragColor;
 
-uniform int octaveCount;
-uniform float initialAmplitude;
-uniform float amplitudeDecay;
-uniform float spreadFactor;
+layout(std140, binding = 0) uniform terrainParams {
+	uniform int octaveCount;
+	uniform float initialAmplitude;
+	uniform float amplitudeDecay;
+	uniform float spreadFactor;
+};
+
 uniform float latticeWidth;
 
 uniform bool perFragNormals;
@@ -104,14 +106,14 @@ vec3 perlin(vec2 pos) {
 	return vec3(noise, tangents.x, tangents.y);
 }
 
-vec3 getTerrainInfo(vec3 worldPos) {
+vec3 getTerrainInfo(vec2 pos) {
 	vec3 terrainInfo = vec3(0, 0, 0);
 
 	float amplitude = initialAmplitude;
 	float spread = 1;
 
 	for (int i = 0; i < octaveCount; ++i) {
-		vec2 samplePos = worldPos.xz / latticeWidth * spread;
+		vec2 samplePos = pos.xy * spread;
 		vec3 perlinData = perlin(samplePos);
 
 		terrainInfo.x += amplitude * perlinData.x;
@@ -130,9 +132,9 @@ float easeInExpo(float x) {
 
 void main() {
 
-	vec3 fragNormal =vec3(0, 0, 0);
+	vec3 fragNormal = vec3(0, 0, 0);
 	if (perFragNormals) {
-		vec3 terrainInfo = getTerrainInfo(worldPos.xyz);
+		vec3 terrainInfo = getTerrainInfo(latticePos);
 		fragNormal = normalize(vec3(-terrainInfo.y, 1, -terrainInfo.z));
 	}
 

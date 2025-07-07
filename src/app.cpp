@@ -6,12 +6,16 @@
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
+#include "terrainparamsbuffer.h"
+#include "terrainnoise.h"
 
 App::App(int screenWidth, int screenHeight, GLFWwindow* window)
 	: mCamera{ screenWidth, screenHeight }
 	, mTerrainShader{ "shaders/terrain.vert", "shaders/terrain.frag" }
 	, mGridShader{ "shaders/grid.vert", "shaders/grid.frag" }
 	, mWindow{ window }
+	, mScreenWidth{ screenWidth }
+	, mScreenHeight{ screenHeight }
 {
 	glfwSetWindowUserPointer(mWindow, this);
 	glfwSetCursorPosCallback(mWindow, mouseCallback);
@@ -40,11 +44,10 @@ void App::loop() {
 	int planeVertexDensityGUI{ 20 };
 	int labelGUI{ 0 };
 
-	int octaveCountGUI{ 1 };
-	float initialAmplitudeGUI{ 3 };
-	float amplitudeDecayGUI{ 0.5f };
-	float spreadFactorGUI{ 2 };
-	bool perFragNormalsGUI{ false };
+	TerrainParamsBuffer params{ 1, 3, 0.5, 2 };
+	Terrain terrain{ 1024, 5, mScreenWidth, mScreenHeight };
+
+	bool perFragNormalsGUI{ true };
 	float latticeWidthGUI{ 3 };
 
 	Plane terrainPlane{ planeWidthGUI, planeVertexDensityGUI, {}, 0};
@@ -55,6 +58,8 @@ void App::loop() {
 	while (!glfwWindowShouldClose(mWindow)) {
 		deltaTime = glfwGetTime() - prevFrame;
 		prevFrame = glfwGetTime();
+
+		terrain.updateGPU();
 
 		/// Input
 		handleInput();
@@ -81,13 +86,8 @@ void App::loop() {
 		}
 
 		// Terrain variables
-		if (octaveCountGUI <= 0)
-			octaveCountGUI = 1;
-		mTerrainShader.setInt("octaveCount", octaveCountGUI);
+		params.updateGPU();
 
-		mTerrainShader.setFloat("initialAmplitude", initialAmplitudeGUI);
-		mTerrainShader.setFloat("amplitudeDecay", amplitudeDecayGUI);
-		mTerrainShader.setFloat("spreadFactor", spreadFactorGUI);
 		mTerrainShader.setBool("perFragNormals", perFragNormalsGUI);
 
 		// Render plane
@@ -118,10 +118,10 @@ void App::loop() {
 		ImGui::InputInt("Plane vertex density", &planeVertexDensityGUI, 1, 10);
 		ImGui::InputInt("Label", &labelGUI, 1, 10);
 
-		ImGui::DragInt("Octaves", &octaveCountGUI, 0.1f, 1, 50);
-		ImGui::DragFloat("Amplitude", &initialAmplitudeGUI, 0.1f);
-		ImGui::DragFloat("Amplitude decay", &amplitudeDecayGUI, 0.03f);
-		ImGui::DragFloat("Spread", &spreadFactorGUI, 0.01f);
+		ImGui::DragInt("Octaves", params.getOctaveCountPtr(), 0.1f, 1, 50);
+		ImGui::DragFloat("Amplitude", params.getInitialAmplitudePtr(), 0.1f);
+		ImGui::DragFloat("Amplitude decay", params.getAmplitudeDecayPtr(), 0.03f);
+		ImGui::DragFloat("Spread", params.getSpreadFactorPtr(), 0.01f);
 		ImGui::DragFloat("Lattice width", &latticeWidthGUI, 0.1f);
 		ImGui::End();
 

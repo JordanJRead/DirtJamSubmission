@@ -12,6 +12,8 @@ public:
 	void loop();
 
 private:
+	int mScreenWidth;
+	int mScreenHeight;
 	Camera mCamera;
 	Shader mTerrainShader;
 	Shader mGridShader;
