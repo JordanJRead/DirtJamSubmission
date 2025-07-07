@@ -51,14 +51,18 @@ void Terrain::updatePixelDim() {
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, mPixelDim, mPixelDim, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 }
 
+void Terrain::bindImage(int unit) {
+	glActiveTexture(GL_TEXTURE0);
+	mColorTex.use(GL_TEXTURE_2D);
+}
+
 void Terrain::updateScale() {
 	mTerrainNoiseShader.use();
 	mTerrainNoiseShader.setFloat("scale", mScale);
 }
 
-void Terrain::updateGPU() {
-	//bool hasChanged{ false };
-	bool hasChanged{ true };
+void Terrain::updateGPU(bool forceUpdate) {
+	bool hasChanged{ false };
 
 	if (mPrevPixelDim != mPixelDim) {
 		updatePixelDim();
@@ -72,7 +76,7 @@ void Terrain::updateGPU() {
 		hasChanged = true;
 	}
 
-	if (hasChanged) {
+	if (hasChanged || forceUpdate) {
 		updateTexture();
 	}
 }
@@ -80,7 +84,7 @@ void Terrain::updateGPU() {
 void Terrain::updateTexture() {
 	glViewport(0, 0, mPixelDim, mPixelDim);
 	glBindFramebuffer(GL_FRAMEBUFFER, mFBO);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT);
 	mVertexArray.use();
 	mTerrainNoiseShader.use();
 	glDrawElements(GL_TRIANGLES, mVertexArray.getIndexCount(), GL_UNSIGNED_INT, 0);

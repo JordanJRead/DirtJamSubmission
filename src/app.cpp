@@ -27,6 +27,7 @@ App::App(int screenWidth, int screenHeight, GLFWwindow* window)
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_DEPTH_TEST);
+	mTerrainShader.setInt("terrainImage", 0);
 }
 
 void App::handleInput() {
@@ -43,12 +44,12 @@ void App::loop() {
 	int planeWidthGUI{ 100 };
 	int planeVertexDensityGUI{ 20 };
 	int labelGUI{ 0 };
+	float samplingScaleGUI{ 5 };
 
-	TerrainParamsBuffer params{ 1, 3, 0.5, 2 };
-	Terrain terrain{ 1024, 5, mScreenWidth, mScreenHeight };
+	TerrainParamsBuffer terrainParameters{ 1, 3, 0.5, 2 };
+	Terrain terrainImageGenerator{ 1024, 5, mScreenWidth, mScreenHeight };
 
 	bool perFragNormalsGUI{ true };
-	float latticeWidthGUI{ 3 };
 
 	Plane terrainPlane{ planeWidthGUI, planeVertexDensityGUI, {}, 0};
 	Plane worldGridPlane{ 100, 1, {}, 0 };
@@ -59,13 +60,12 @@ void App::loop() {
 		deltaTime = glfwGetTime() - prevFrame;
 		prevFrame = glfwGetTime();
 
-		terrain.updateGPU();
-
 		/// Input
 		handleInput();
 		mCamera.move(mWindow, (float)deltaTime);
 
 		/// Rendering
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// Terrain
@@ -85,16 +85,12 @@ void App::loop() {
 			terrainPlane.rebuild(planeWidthGUI, planeVertexDensityGUI);
 		}
 
-		// Terrain variables
-		params.updateGPU();
-
-		mTerrainShader.setBool("perFragNormals", perFragNormalsGUI);
-
 		// Render plane
-		mTerrainShader.setFloat("scale", terrainPlane.getWidth());
-		mTerrainShader.setFloat("latticeWidth", latticeWidthGUI);
+		mTerrainShader.setFloat("planeWorldWidth", terrainPlane.getWidth());
+		mTerrainShader.setFloat("samplingScale", samplingScaleGUI);
 
 		terrainPlane.useVAO();
+		terrainImageGenerator.bindImage(0);
 		glDrawElements(wireFrameGUI ? GL_POINTS : GL_TRIANGLES, terrainPlane.getIndexCount(), GL_UNSIGNED_INT, 0);
 
 		// Grid
@@ -118,15 +114,18 @@ void App::loop() {
 		ImGui::InputInt("Plane vertex density", &planeVertexDensityGUI, 1, 10);
 		ImGui::InputInt("Label", &labelGUI, 1, 10);
 
-		ImGui::DragInt("Octaves", params.getOctaveCountPtr(), 0.1f, 1, 50);
-		ImGui::DragFloat("Amplitude", params.getInitialAmplitudePtr(), 0.1f);
-		ImGui::DragFloat("Amplitude decay", params.getAmplitudeDecayPtr(), 0.03f);
-		ImGui::DragFloat("Spread", params.getSpreadFactorPtr(), 0.01f);
-		ImGui::DragFloat("Lattice width", &latticeWidthGUI, 0.1f);
+		ImGui::DragInt("Octaves", terrainParameters.getOctaveCountPtr(), 0.1f, 1, 50);
+		ImGui::DragFloat("Amplitude", terrainParameters.getInitialAmplitudePtr(), 0.1f);
+		ImGui::DragFloat("Amplitude decay", terrainParameters.getAmplitudeDecayPtr(), 0.03f);
+		ImGui::DragFloat("Spread", terrainParameters.getSpreadFactorPtr(), 0.01f);
+		ImGui::DragFloat("Sampling scale", &samplingScaleGUI, 0.1f);
 		ImGui::End();
 
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+		// Update terrain image
+		terrainImageGenerator.updateGPU(terrainParameters.updateGPU());
 
 		glfwSwapBuffers(mWindow);
 		glfwPollEvents();

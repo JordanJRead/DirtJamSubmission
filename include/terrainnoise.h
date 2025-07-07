@@ -9,7 +9,8 @@
 class Terrain {
 public:
 	Terrain(int pixelDim, float scale, int screenWidth, int screenHeight);
-	void updateGPU();
+	void updateGPU(bool forceUpdate = false);
+	void bindImage(int unit);
 
 	int* getPixelDimPtr() { return &mPixelDim; }
 	float* getScalePtr() { return &mScale; }
