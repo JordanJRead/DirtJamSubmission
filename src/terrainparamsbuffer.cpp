@@ -28,7 +28,7 @@ bool TerrainParamsBuffer::updateGPU() {
 	glBindBuffer(GL_UNIFORM_BUFFER, mBuf);
 	bool hasChanged{ false };
 
-	if (mPrevOctaveCount != mOctaveCount || true) {
+	if (mPrevOctaveCount != mOctaveCount) {
 		updateOctaveCount();
 		mPrevOctaveCount = mOctaveCount;
 		hasChanged = true;

@@ -45,8 +45,6 @@ Terrain::Terrain(int pixelDim, float scale, int screenWidth, int screenHeight)
 }
 
 void Terrain::updatePixelDim() {
-	glBindFramebuffer(GL_FRAMEBUFFER, mFBO);
-
 	glBindTexture(GL_TEXTURE_2D, mColorTex);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, mPixelDim, mPixelDim, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 }

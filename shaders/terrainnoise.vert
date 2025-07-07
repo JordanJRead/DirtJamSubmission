@@ -7,6 +7,6 @@ out vec2 latticePos;
 uniform float scale;
 
 void main() {
-	latticePos = vPos * scale;
+	latticePos = (0.5 * vPos) * scale;
 	gl_Position = vec4(vPos, 0, 1);
 }

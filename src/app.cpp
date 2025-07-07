@@ -42,12 +42,12 @@ void App::loop() {
 
 	bool wireFrameGUI{ false };
 	int planeWidthGUI{ 100 };
-	int planeVertexDensityGUI{ 20 };
+	int planeVertexDensityGUI{ 40 };
 	int labelGUI{ 0 };
-	float samplingScaleGUI{ 5 };
+	float samplingScaleGUI{ 41.4 };
 
-	TerrainParamsBuffer terrainParameters{ 1, 2, 0.5, 2 };
-	Terrain terrainImageGenerator{ 1024 * 8, 5, mScreenWidth, mScreenHeight };
+	TerrainParamsBuffer terrainParameters{ 7, 10.6, 0.5, 2.02 };
+	Terrain terrainImageGenerator{ 1024, 2, mScreenWidth, mScreenHeight };
 
 	bool perFragNormalsGUI{ true };
 
@@ -56,7 +56,19 @@ void App::loop() {
 	terrainPlane.useVAO();
 
 	glfwSwapInterval(0);
+
+	double startTime{ glfwGetTime() };
+	double displayDeltaTime{ deltaTime };
+	double prevTimeFrac{ 0.9 };
 	while (!glfwWindowShouldClose(mWindow)) {
+
+		double currTime{ glfwGetTime() };
+		double currTimeFrac{ currTime - (long)currTime };
+		if (currTimeFrac < prevTimeFrac) {
+			displayDeltaTime = deltaTime;
+		}
+		prevTimeFrac = currTimeFrac;
+
 		deltaTime = glfwGetTime() - prevFrame;
 		prevFrame = glfwGetTime();
 
@@ -107,7 +119,7 @@ void App::loop() {
 		ImGui::NewFrame();
 
 		ImGui::Begin("TERRAIN PARAMETERS");
-		ImGui::Text("FPS: %f", 1 / deltaTime);
+		ImGui::Text("FPS: %f", 1 / displayDeltaTime);
 
 		ImGui::DragInt("Octaves", terrainParameters.getOctaveCountPtr(), 0.1f, 1, 50);
 		ImGui::DragFloat("Amplitude", terrainParameters.getInitialAmplitudePtr(), 0.1f);
@@ -120,6 +132,11 @@ void App::loop() {
 		ImGui::Checkbox("Wire", &wireFrameGUI);
 		ImGui::InputInt("Plane width", &planeWidthGUI, 1, 10);
 		ImGui::InputInt("Plane vertex density", &planeVertexDensityGUI, 1, 10);
+		ImGui::End();
+
+		ImGui::Begin("TERRAIN IMAGE");
+		ImGui::InputInt("Pixel width", terrainImageGenerator.getPixelDimPtr(), 100, 1000);
+		ImGui::DragFloat("Scale", terrainImageGenerator.getScalePtr());
 		ImGui::End();
 
 		ImGui::Render();

@@ -14,20 +14,10 @@ layout(std140, binding = 0) uniform terrainParams {
 uniform float samplingScale;
 uniform sampler2D terrainImage;
 
-vec3 getTerrainInfoNONREC(vec2 worldPos) {
-	vec3 terrainInfo = texture(terrainImage, (worldPos / samplingScale) + vec2(0.5)).xyz;
-	terrainInfo.yz *= samplingScale;
-	return terrainInfo;
-}
-
 vec3 getTerrainInfo(vec2 worldPos) {
-	vec3 terrainInfo = texture(terrainImage, (worldPos / samplingScale) + vec2(0.5)).xyz;
+	vec2 samplingCoord = (worldPos / samplingScale) + vec2(0.5);
+	vec3 terrainInfo = texture(terrainImage, samplingCoord).xyz;
 	terrainInfo.yz /= samplingScale;
-	if (false) {
-		float h = 0.01;
-		terrainInfo.y = (getTerrainInfoNONREC(vec2(worldPos.x + h, worldPos.y)).x - terrainInfo.x) / h;
-		terrainInfo.z = (getTerrainInfoNONREC(vec2(worldPos.x, worldPos.y + h)).x - terrainInfo.x) / h;
-	}
 	return terrainInfo;
 }
 
@@ -40,8 +30,10 @@ void main() {
 	vec3 terrainInfo = getTerrainInfo(flatWorldPos);
 	vec3 normal = normalize(vec3(-terrainInfo.y, 1, -terrainInfo.z));
 
-	vec3 dirtAlbedo = vec3(0.58, 0.35, 0.22);
-	vec3 grassAlbedo = vec3(0, 0.6, 0);
+	//vec3 dirtAlbedo = vec3(0.58, 0.35, 0.22);
+	vec3 dirtAlbedo = vec3(0.35, 0.35, 0.35);
+	//vec3 grassAlbedo = vec3(0, 0.6, 0);
+	vec3 grassAlbedo = vec3(1, 1, 1);
 
 	vec3 lightDir = normalize(vec3(0, 1, 0));
 	float diffuse = max(0, dot(lightDir, normal));
@@ -51,6 +43,4 @@ void main() {
 	albedo = dirtAlbedo + (diffuse < 0.8 ? 0 : 1) * (grassAlbedo - dirtAlbedo);
 
 	FragColor = vec4((diffuse + ambient) * albedo, 1);
-	//FragColor = vec4(terrainInfo.x * 0.5 + 0.5, terrainInfo.x * 0.5 + 0.5, terrainInfo.x * 0.5 + 0.5, 1);
-	//FragColor = vec4(terrainInfo.y, terrainInfo.y, terrainInfo.y, 1);
 }
