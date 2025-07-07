@@ -46,8 +46,8 @@ void App::loop() {
 	int labelGUI{ 0 };
 	float samplingScaleGUI{ 5 };
 
-	TerrainParamsBuffer terrainParameters{ 1, 3, 0.5, 2 };
-	Terrain terrainImageGenerator{ 1024, 5, mScreenWidth, mScreenHeight };
+	TerrainParamsBuffer terrainParameters{ 1, 2, 0.5, 2 };
+	Terrain terrainImageGenerator{ 1024 * 8, 5, mScreenWidth, mScreenHeight };
 
 	bool perFragNormalsGUI{ true };
 
@@ -106,19 +106,20 @@ void App::loop() {
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 
-		ImGui::Begin("TEST WINDOW");
+		ImGui::Begin("TERRAIN PARAMETERS");
 		ImGui::Text("FPS: %f", 1 / deltaTime);
-		ImGui::Checkbox("Wire", &wireFrameGUI);
-		ImGui::Checkbox("Frag normals", &perFragNormalsGUI);
-		ImGui::InputInt("Plane width", &planeWidthGUI, 1, 10);
-		ImGui::InputInt("Plane vertex density", &planeVertexDensityGUI, 1, 10);
-		ImGui::InputInt("Label", &labelGUI, 1, 10);
 
 		ImGui::DragInt("Octaves", terrainParameters.getOctaveCountPtr(), 0.1f, 1, 50);
 		ImGui::DragFloat("Amplitude", terrainParameters.getInitialAmplitudePtr(), 0.1f);
 		ImGui::DragFloat("Amplitude decay", terrainParameters.getAmplitudeDecayPtr(), 0.03f);
 		ImGui::DragFloat("Spread", terrainParameters.getSpreadFactorPtr(), 0.01f);
 		ImGui::DragFloat("Sampling scale", &samplingScaleGUI, 0.1f);
+		ImGui::End();
+
+		ImGui::Begin("PLANE PARAMETERS");
+		ImGui::Checkbox("Wire", &wireFrameGUI);
+		ImGui::InputInt("Plane width", &planeWidthGUI, 1, 10);
+		ImGui::InputInt("Plane vertex density", &planeVertexDensityGUI, 1, 10);
 		ImGui::End();
 
 		ImGui::Render();

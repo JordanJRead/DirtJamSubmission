@@ -107,7 +107,6 @@ vec3 getTerrainInfo(vec2 pos) {
 	vec3 terrainInfo = vec3(0, 0, 0);
 
 	float amplitude = initialAmplitude;
-	amplitude = 1;
 	float spread = 1;
 
 	for (int i = 0; i < octaveCount; ++i) {
@@ -120,7 +119,7 @@ vec3 getTerrainInfo(vec2 pos) {
 		amplitude *= amplitudeDecay;
 		spread *= spreadFactor;
 	}
-	terrainInfo.yz /= 2 * scale;
+	terrainInfo.yz *= scale * 2.0;
 	return terrainInfo;
 }
 

@@ -14,9 +14,20 @@ layout(std140, binding = 0) uniform terrainParams {
 uniform float samplingScale;
 uniform sampler2D terrainImage;
 
-vec3 getTerrainInfo(vec2 worldPos) {
+vec3 getTerrainInfoNONREC(vec2 worldPos) {
 	vec3 terrainInfo = texture(terrainImage, (worldPos / samplingScale) + vec2(0.5)).xyz;
 	terrainInfo.yz *= samplingScale;
+	return terrainInfo;
+}
+
+vec3 getTerrainInfo(vec2 worldPos) {
+	vec3 terrainInfo = texture(terrainImage, (worldPos / samplingScale) + vec2(0.5)).xyz;
+	terrainInfo.yz /= samplingScale;
+	if (false) {
+		float h = 0.01;
+		terrainInfo.y = (getTerrainInfoNONREC(vec2(worldPos.x + h, worldPos.y)).x - terrainInfo.x) / h;
+		terrainInfo.z = (getTerrainInfoNONREC(vec2(worldPos.x, worldPos.y + h)).x - terrainInfo.x) / h;
+	}
 	return terrainInfo;
 }
 
