@@ -27,6 +27,7 @@ App::App(int screenWidth, int screenHeight, GLFWwindow* window)
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_DEPTH_TEST);
+	glClearColor(0.5f, 0.5f, 0.5f, 1);
 	mTerrainShader.setInt("terrainImage", 0);
 }
 

@@ -18,6 +18,7 @@ layout(std140, binding = 0) uniform terrainParams {
 uniform sampler2D terrainImage;
 
 out vec2 flatWorldPos;
+out vec3 viewPos;
 
 vec3 getTerrainInfo(vec2 worldPos) {
 	vec2 sampleCoord = (worldPos / samplingScale) + vec2(0.5);
@@ -36,5 +37,6 @@ void main() {
 	vec3 terrainInfo = getTerrainInfo(flatWorldPos);
 	worldPos.y += terrainInfo.x;
 
-	gl_Position = proj * view * worldPos;
+	viewPos = (view * worldPos).xyz;
+	gl_Position = proj * vec4(viewPos, 1);
 }

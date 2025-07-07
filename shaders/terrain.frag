@@ -2,6 +2,7 @@
 #define PI 3.141592653589793238462
 
 in vec2 flatWorldPos;
+in vec3 viewPos;
 out vec4 FragColor;
 
 layout(std140, binding = 0) uniform terrainParams {
@@ -46,5 +47,11 @@ void main() {
 	vec3 albedo = dirtAlbedo + easeInExpo(diffuse) * (grassAlbedo - dirtAlbedo);
 	albedo = dirtAlbedo + (diffuse < 0.8 ? 0 : 1) * (grassAlbedo - dirtAlbedo);
 
-	FragColor = vec4((diffuse + ambient) * albedo, 1);
+	float distFromCamera = length(viewPos);
+	float density = 0.07;
+	float visibility = 1 / (exp(distFromCamera * density));
+
+	vec3 preFogColor = (diffuse + ambient) * albedo;
+	vec3 postFogColor = visibility * preFogColor + (1 - visibility) * vec3(0.5, 0.5, 0.5);
+	FragColor = vec4(postFogColor, 1);
 }
