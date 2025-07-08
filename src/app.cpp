@@ -41,7 +41,7 @@ void App::loop() {
 	double deltaTime{ 0 };
 	double prevFrame{ glfwGetTime() };
 
-	bool dotModeGUI{ false };
+	bool wireModeGUI{ false };
 	bool displayGridGUI{ true };
 	int planeWidthGUI{ 50 };
 	int planeVertexDensityGUI{ 60 };
@@ -121,7 +121,7 @@ void App::loop() {
 
 		for (int shellI{ 0 }; shellI <= maxShellCountGUI; ++shellI) {
 			mTerrainShader.setInt("shellIndex", shellI);
-			glDrawElements(dotModeGUI ? GL_POINTS : GL_TRIANGLES, terrainPlane.getIndexCount(), GL_UNSIGNED_INT, 0);
+			glDrawElements(wireModeGUI ? GL_LINES : GL_TRIANGLES, terrainPlane.getIndexCount(), GL_UNSIGNED_INT, 0);
 		}
 
 
@@ -160,7 +160,7 @@ void App::loop() {
 		ImGui::End();
 
 		ImGui::Begin("PLANE PARAMETERS");
-		ImGui::Checkbox("Dots", &dotModeGUI);
+		ImGui::Checkbox("Wire", &wireModeGUI);
 		ImGui::Checkbox("Grid", &displayGridGUI);
 		ImGui::InputInt("Plane width", &planeWidthGUI, 1, 10);
 		ImGui::InputInt("Plane vertex density", &planeVertexDensityGUI, 1, 10);

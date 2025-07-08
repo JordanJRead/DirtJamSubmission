@@ -103,6 +103,13 @@ vec3 perlin(vec2 pos) {
 	return vec3(noise, tangents.x, tangents.y);
 }
 
+float amp(float x, float rough) {
+	if (x > 0) {
+		return 1;
+	}
+	return rough / (x * x + rough);
+}
+
 vec3 getTerrainInfo(vec2 pos) {
 	vec3 terrainInfo = vec3(0, 0, 0);
 
@@ -121,7 +128,7 @@ vec3 getTerrainInfo(vec2 pos) {
 	}
 	terrainInfo.yz *= scale;
 	
-	return terrainInfo;
+	return terrainInfo * amp(terrainInfo.x, 5);
 }
 
 void main() {
