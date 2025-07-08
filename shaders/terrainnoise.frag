@@ -103,11 +103,18 @@ vec3 perlin(vec2 pos) {
 	return vec3(noise, tangents.x, tangents.y);
 }
 
+// Lowers the amplitude for terrain points below y=0 to create flat ground
 float amp(float x, float rough) {
 	if (x > 0) {
 		return 1;
 	}
 	return rough / (x * x + rough);
+}
+
+float damp(float x, float rough) {
+	if (x > 0)
+		return 0;
+	return -2 * rough * x / (x * x + rough) / (x * x + rough);
 }
 
 vec3 getTerrainInfo(vec2 pos) {
@@ -128,7 +135,13 @@ vec3 getTerrainInfo(vec2 pos) {
 	}
 	terrainInfo.yz *= scale;
 	
-	return terrainInfo * amp(terrainInfo.x, 5);
+	float amp = amp(terrainInfo.x, 10);
+	float damp = damp(terrainInfo.x, 10);
+
+	vec3 finalOutput = vec3(0);
+	finalOutput.x = terrainInfo.x * amp;
+	finalOutput.yz = terrainInfo.yz * amp + damp * terrainInfo.yz * vec2(terrainInfo.x); // derivative of terrainInfo.x * amp(terrainInfo.x);
+	return finalOutput;
 }
 
 void main() {

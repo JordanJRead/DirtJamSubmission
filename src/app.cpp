@@ -145,8 +145,8 @@ void App::loop() {
 
 		ImGui::DragInt("Octaves", terrainParameters.getOctaveCountPtr(), 0.1f, 1, 50);
 		ImGui::DragFloat("Amplitude", terrainParameters.getInitialAmplitudePtr(), 0.1f);
-		ImGui::DragFloat("Amplitude decay", terrainParameters.getAmplitudeDecayPtr(), 0.03f);
-		ImGui::DragFloat("Spread", terrainParameters.getSpreadFactorPtr(), 0.01f);
+		ImGui::DragFloat("Amplitude decay", terrainParameters.getAmplitudeDecayPtr(), 0.0001f);
+		ImGui::DragFloat("Spread", terrainParameters.getSpreadFactorPtr(), 0.001f);
 		ImGui::DragFloat("Visibility", &maxFogDistGUI, 1, 1, 100);
 		ImGui::DragFloat("Color dot", &colorDotCutoffGUI, 0.01, 0, 1);
 		ImGui::End();
