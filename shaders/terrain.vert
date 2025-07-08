@@ -16,6 +16,8 @@ layout(std140, binding = 0) uniform terrainParams {
 };
 
 uniform sampler2D terrainImage;
+uniform int shellIndex;
+uniform float extrudePerShell;
 
 out vec2 flatWorldPos;
 out vec3 viewPos;
@@ -35,7 +37,9 @@ void main() {
 	vec4 worldPos = vec4(vPos.x * planeWorldWidth, 0, vPos.y * planeWorldWidth, 1);
 	flatWorldPos = worldPos.xz;
 	vec3 terrainInfo = getTerrainInfo(flatWorldPos);
+	vec3 normal = normalize(vec3(-terrainInfo.y, 1, -terrainInfo.z));
 	worldPos.y += terrainInfo.x;
+	worldPos.xyz += normal * shellIndex * extrudePerShell;
 
 	viewPos = (view * worldPos).xyz;
 	gl_Position = proj * vec4(viewPos, 1);

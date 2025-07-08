@@ -103,7 +103,7 @@ vec3 perlin(vec2 pos) {
 	return vec3(noise, tangents.x, tangents.y);
 }
 
-vec3 getTerrainInfoNR(vec2 pos) {
+vec3 getTerrainInfo(vec2 pos) {
 	vec3 terrainInfo = vec3(0, 0, 0);
 
 	float amplitude = initialAmplitude;
@@ -120,33 +120,10 @@ vec3 getTerrainInfoNR(vec2 pos) {
 		spread *= spreadFactor;
 	}
 	terrainInfo.yz *= scale;
-	return terrainInfo;
-}
-
-vec3 getTerrainInfo(vec2 pos) {
-	vec3 terrainInfo = vec3(0, 0, 0);
-
-	float amplitude = initialAmplitude;
-	float spread = 1;
-
-	for (int i = 0; i < octaveCount; ++i) {
-		vec2 samplePos = pos * spread;
-		vec3 perlinData = perlin(samplePos);
-
-		terrainInfo.x += amplitude * perlinData.x;
-
-		amplitude *= amplitudeDecay;
-		spread *= spreadFactor;
-	}
-
-	float h = 0.0001;
-	terrainInfo.y = (getTerrainInfoNR(pos + vec2(h, 0)).x - terrainInfo.x) / h;
-	terrainInfo.z = (getTerrainInfoNR(pos + vec2(0, h)).x - terrainInfo.x) / h;
-
-	terrainInfo.yz *= scale;
+	
 	return terrainInfo;
 }
 
 void main() {
-	OutTerrainData = vec4(getTerrainInfoNR(latticePos), 1);
+	OutTerrainData = vec4(getTerrainInfo(latticePos), 1);
 }

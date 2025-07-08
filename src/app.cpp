@@ -41,14 +41,21 @@ void App::loop() {
 	double deltaTime{ 0 };
 	double prevFrame{ glfwGetTime() };
 
-	bool wireFrameGUI{ false };
+	bool dotModeGUI{ false };
+	bool displayGridGUI{ true };
 	int planeWidthGUI{ 50 };
 	int planeVertexDensityGUI{ 60 };
 	int labelGUI{ 0 };
-	float samplingScaleGUI{ 41.4 };
+	float maxFogDistGUI{ 25 };
+	float colorDotCutoffGUI{ 0.5 };
+	float textureScaleGUI{ 500 };
+	float extrudePerShellGUI{ 0.01 };
+	float cutoffLossPerShellGUI{ 0.2 };
+	float shellCutoffBaseGUI{ 0.2 };
+	int maxShellCountGUI{ 3 };
 
-	TerrainParamsBuffer terrainParameters{ 10, 10.6, 0.47, 2.02 };
-	Terrain terrainImageGenerator{ 1024 * 4, 2, mScreenWidth, mScreenHeight };
+	TerrainParamsBuffer terrainParameters{ 15, 10.6, 0.47, 2.02 };
+	Terrain terrainImageGenerator{ 1024 * 9, 2, mScreenWidth, mScreenHeight };
 
 	bool perFragNormalsGUI{ true };
 
@@ -100,19 +107,33 @@ void App::loop() {
 
 		// Render plane
 		mTerrainShader.setFloat("planeWorldWidth", terrainPlane.getWidth());
-		mTerrainShader.setFloat("samplingScale", samplingScaleGUI);
+		mTerrainShader.setFloat("samplingScale", *terrainImageGenerator.getScalePtr() * 22);
+		mTerrainShader.setFloat("maxFogDist", maxFogDistGUI);
+		mTerrainShader.setFloat("extrudePerShell", extrudePerShellGUI);
+		mTerrainShader.setFloat("colorDotCutoff", colorDotCutoffGUI);
+		mTerrainShader.setFloat("textureScale", textureScaleGUI);
+		mTerrainShader.setFloat("cutoffLossPerShell", cutoffLossPerShellGUI);
+		mTerrainShader.setFloat("cutoffBase", shellCutoffBaseGUI);
+		mTerrainShader.setInt("maxShellCount", maxShellCountGUI);
 
 		terrainPlane.useVAO();
 		terrainImageGenerator.bindImage(0);
-		glDrawElements(wireFrameGUI ? GL_POINTS : GL_TRIANGLES, terrainPlane.getIndexCount(), GL_UNSIGNED_INT, 0);
+
+		for (int shellI{ 0 }; shellI <= maxShellCountGUI; ++shellI) {
+			mTerrainShader.setInt("shellIndex", shellI);
+			glDrawElements(dotModeGUI ? GL_POINTS : GL_TRIANGLES, terrainPlane.getIndexCount(), GL_UNSIGNED_INT, 0);
+		}
+
 
 		// Grid
-		mGridShader.use();
-		mGridShader.setMatrix4("view", mCamera.getViewMatrix());
-		mGridShader.setMatrix4("proj", mCamera.getProjectionMatrix());
-		mGridShader.setFloat("scale", worldGridPlane.getWidth());
-		worldGridPlane.useVAO();
-		glDrawElements(GL_TRIANGLES, worldGridPlane.getIndexCount(), GL_UNSIGNED_INT, 0);
+		if (displayGridGUI) {
+			mGridShader.use();
+			mGridShader.setMatrix4("view", mCamera.getViewMatrix());
+			mGridShader.setMatrix4("proj", mCamera.getProjectionMatrix());
+			mGridShader.setFloat("scale", worldGridPlane.getWidth());
+			worldGridPlane.useVAO();
+			glDrawElements(GL_TRIANGLES, worldGridPlane.getIndexCount(), GL_UNSIGNED_INT, 0);
+		}
 
 		// ImGUI
 		ImGui_ImplOpenGL3_NewFrame();
@@ -126,18 +147,28 @@ void App::loop() {
 		ImGui::DragFloat("Amplitude", terrainParameters.getInitialAmplitudePtr(), 0.1f);
 		ImGui::DragFloat("Amplitude decay", terrainParameters.getAmplitudeDecayPtr(), 0.03f);
 		ImGui::DragFloat("Spread", terrainParameters.getSpreadFactorPtr(), 0.01f);
-		ImGui::DragFloat("Sampling scale", &samplingScaleGUI, 0.1f);
+		ImGui::DragFloat("Visibility", &maxFogDistGUI, 1, 1, 100);
+		ImGui::DragFloat("Color dot", &colorDotCutoffGUI, 0.01, 0, 1);
+		ImGui::End();
+
+		ImGui::Begin("SHELL TEXTURE PARAMETERS");
+		ImGui::DragFloat("Texture scale", &textureScaleGUI);
+		ImGui::DragFloat("Shell extrusion", &extrudePerShellGUI, 0.01, 0, 1);
+		ImGui::DragFloat("Shell falloff", &cutoffLossPerShellGUI, 0.01, 0, 1);
+		ImGui::DragFloat("Shell falloff base", &shellCutoffBaseGUI, 0.01, 0, 1);
+		ImGui::DragInt("Shell count", &maxShellCountGUI, 0.1, 0, 10);
 		ImGui::End();
 
 		ImGui::Begin("PLANE PARAMETERS");
-		ImGui::Checkbox("Wire", &wireFrameGUI);
+		ImGui::Checkbox("Dots", &dotModeGUI);
+		ImGui::Checkbox("Grid", &displayGridGUI);
 		ImGui::InputInt("Plane width", &planeWidthGUI, 1, 10);
 		ImGui::InputInt("Plane vertex density", &planeVertexDensityGUI, 1, 10);
 		ImGui::End();
 
 		ImGui::Begin("TERRAIN IMAGE");
 		ImGui::InputInt("Pixel width", terrainImageGenerator.getPixelDimPtr(), 100, 1000);
-		ImGui::DragFloat("Scale", terrainImageGenerator.getScalePtr());
+		ImGui::DragFloat("Quality - Size", terrainImageGenerator.getScalePtr(), 0.1f, 0.1f, 100);
 		ImGui::End();
 
 		ImGui::Render();

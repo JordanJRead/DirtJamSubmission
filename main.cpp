@@ -13,8 +13,8 @@ int main() {
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_SAMPLES, 4);
 
-	int screenWidth{ 800 };
-	int screenHeight{ 600 };
+	int screenWidth{ 1920 };
+	int screenHeight{ 1080 };
 
 	GLFWwindow* window = glfwCreateWindow(screenWidth, screenHeight, "DirtJam", NULL, NULL);
 	if (window == NULL)
