@@ -48,7 +48,7 @@ void App::loop() {
 	int labelGUI{ 0 };
 	float maxFogDistGUI{ 25 };
 	float colorDotCutoffGUI{ 0.5 };
-	float textureScaleGUI{ 500 };
+	float textureScaleGUI{ 90 };
 	float extrudePerShellGUI{ 0.01 };
 	float cutoffLossPerShellGUI{ 0.2 };
 	float shellCutoffBaseGUI{ 0.2 };
@@ -153,7 +153,7 @@ void App::loop() {
 
 		ImGui::Begin("SHELL TEXTURE PARAMETERS");
 		ImGui::DragFloat("Texture scale", &textureScaleGUI);
-		ImGui::DragFloat("Shell extrusion", &extrudePerShellGUI, 0.01, 0, 1);
+		ImGui::DragFloat("Shell extrusion", &extrudePerShellGUI, 0.001, 0, 1);
 		ImGui::DragFloat("Shell falloff", &cutoffLossPerShellGUI, 0.01, 0, 1);
 		ImGui::DragFloat("Shell falloff base", &shellCutoffBaseGUI, 0.01, 0, 1);
 		ImGui::DragInt("Shell count", &maxShellCountGUI, 0.1, 0, 10);
