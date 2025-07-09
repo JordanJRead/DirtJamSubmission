@@ -135,8 +135,8 @@ vec3 getTerrainInfo(vec2 pos) {
 	}
 	terrainInfo.yz *= scale;
 	
-	float amp = amp(terrainInfo.x, 10);
-	float damp = damp(terrainInfo.x, 10);
+	float amp = amp(terrainInfo.x, 20);
+	float damp = damp(terrainInfo.x, 20);
 
 	vec3 finalOutput = vec3(0);
 	finalOutput.x = terrainInfo.x * amp;

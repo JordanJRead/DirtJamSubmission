@@ -45,8 +45,8 @@ void App::loop() {
 
 	bool wireModeGUI{ false };
 	bool displayGridGUI{ true };
-	int planeWidthGUI{ 50 };
-	int planeVertexDensityGUI{ 60 };
+	int planeWidthGUI{ 500 };
+	int planeVertexDensityGUI{ 10 };
 	int labelGUI{ 0 };
 	float maxFogDistGUI{ 25 };
 	float colorDotCutoffGUI{ 0.5 };
@@ -152,7 +152,7 @@ void App::loop() {
 		ImGui::DragFloat("Amplitude", terrainParameters.getInitialAmplitudePtr(), 0.1f);
 		ImGui::DragFloat("Amplitude decay", terrainParameters.getAmplitudeDecayPtr(), 0.0001f);
 		ImGui::DragFloat("Spread", terrainParameters.getSpreadFactorPtr(), 0.001f);
-		ImGui::DragFloat("Visibility", &maxFogDistGUI, 1, 1, 100);
+		ImGui::DragFloat("Visibility", &maxFogDistGUI, 1, 1, 10000);
 		ImGui::DragFloat("Color dot", &colorDotCutoffGUI, 0.01, 0, 1);
 		ImGui::End();
 
