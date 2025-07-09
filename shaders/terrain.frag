@@ -13,7 +13,9 @@ layout(std140, binding = 0) uniform terrainParams {
 };
 
 uniform float samplingScale;
+uniform float samplingScaleBad;
 uniform sampler2D terrainImage;
+uniform sampler2D terrainImageBad;
 
 uniform float maxFogDist;
 uniform float colorDotCutoff;
@@ -26,11 +28,18 @@ uniform int maxShellCount;
 vec3 getTerrainInfo(vec2 worldPos) {
 	vec2 sampleCoord = (worldPos / samplingScale) + vec2(0.5);
 	vec3 terrainInfo = texture(terrainImage, sampleCoord).xyz;
-	
-	if (sampleCoord.x > 1 || sampleCoord.x < 0 || sampleCoord.y > 1 || sampleCoord.y < 0)
-		terrainInfo = vec3(-initialAmplitude, 0, 0);
+	bool badTexture = false;
 
-	terrainInfo.yz /= samplingScale;
+	if (sampleCoord.x > 1 || sampleCoord.x < 0 || sampleCoord.y > 1 || sampleCoord.y < 0) {
+		badTexture = true;
+		sampleCoord = (worldPos / samplingScaleBad) + vec2(0.5);
+		terrainInfo = texture(terrainImageBad, sampleCoord).xyz;
+		if (sampleCoord.x > 1 || sampleCoord.x < 0 || sampleCoord.y > 1 || sampleCoord.y < 0) {
+			terrainInfo = vec3(-initialAmplitude, 0, 0);
+		}
+	}
+
+	terrainInfo.yz /= badTexture ? samplingScaleBad : samplingScale;
 	return terrainInfo;
 }
 

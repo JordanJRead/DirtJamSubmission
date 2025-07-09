@@ -7,6 +7,7 @@ uniform mat4 view;
 uniform mat4 proj;
 uniform float planeWorldWidth;
 uniform float samplingScale;
+uniform float samplingScaleBad;
 
 layout(std140, binding = 0) uniform terrainParams {
 	uniform int octaveCount;
@@ -16,6 +17,7 @@ layout(std140, binding = 0) uniform terrainParams {
 };
 
 uniform sampler2D terrainImage;
+uniform sampler2D terrainImageBad;
 uniform int shellIndex;
 uniform float extrudePerShell;
 
@@ -25,11 +27,18 @@ out vec3 viewPos;
 vec3 getTerrainInfo(vec2 worldPos) {
 	vec2 sampleCoord = (worldPos / samplingScale) + vec2(0.5);
 	vec3 terrainInfo = texture(terrainImage, sampleCoord).xyz;
+	bool badTexture = false;
 
-	if (sampleCoord.x > 1 || sampleCoord.x < 0 || sampleCoord.y > 1 || sampleCoord.y < 0)
-		terrainInfo = vec3(-initialAmplitude, 0, 0);
+	if (sampleCoord.x > 1 || sampleCoord.x < 0 || sampleCoord.y > 1 || sampleCoord.y < 0) {
+		badTexture = true;
+		sampleCoord = (worldPos / samplingScaleBad) + vec2(0.5);
+		terrainInfo = texture(terrainImageBad, sampleCoord).xyz;
+		if (sampleCoord.x > 1 || sampleCoord.x < 0 || sampleCoord.y > 1 || sampleCoord.y < 0) {
+			terrainInfo = vec3(-initialAmplitude, 0, 0);
+		}
+	}
 
-	terrainInfo.yz /= samplingScale;
+	terrainInfo.yz /= badTexture ? samplingScaleBad : samplingScale;
 	return terrainInfo;
 }
 

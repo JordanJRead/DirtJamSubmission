@@ -28,7 +28,9 @@ App::App(int screenWidth, int screenHeight, GLFWwindow* window)
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_DEPTH_TEST);
 	glClearColor(0.5f, 0.5f, 0.5f, 1);
+	mTerrainShader.use();
 	mTerrainShader.setInt("terrainImage", 0);
+	mTerrainShader.setInt("terrainImageBad", 1);
 }
 
 void App::handleInput() {
@@ -56,6 +58,7 @@ void App::loop() {
 
 	TerrainParamsBuffer terrainParameters{ 15, 10.6, 0.47, 2.02 };
 	Terrain terrainImageGenerator{ 1024 * 9, 2, mScreenWidth, mScreenHeight };
+	Terrain terrainImageGeneratorBad{ 1024 * 6, 16, mScreenWidth, mScreenHeight };
 
 	bool perFragNormalsGUI{ true };
 
@@ -108,6 +111,7 @@ void App::loop() {
 		// Render plane
 		mTerrainShader.setFloat("planeWorldWidth", terrainPlane.getWidth());
 		mTerrainShader.setFloat("samplingScale", *terrainImageGenerator.getScalePtr() * 22);
+		mTerrainShader.setFloat("samplingScaleBad", *terrainImageGeneratorBad.getScalePtr() * 22);
 		mTerrainShader.setFloat("maxFogDist", maxFogDistGUI);
 		mTerrainShader.setFloat("extrudePerShell", extrudePerShellGUI);
 		mTerrainShader.setFloat("colorDotCutoff", colorDotCutoffGUI);
@@ -118,6 +122,7 @@ void App::loop() {
 
 		terrainPlane.useVAO();
 		terrainImageGenerator.bindImage(0);
+		terrainImageGeneratorBad.bindImage(1);
 
 		for (int shellI{ 0 }; shellI <= maxShellCountGUI; ++shellI) {
 			mTerrainShader.setInt("shellIndex", shellI);
@@ -169,13 +174,17 @@ void App::loop() {
 		ImGui::Begin("TERRAIN IMAGE");
 		ImGui::InputInt("Pixel width", terrainImageGenerator.getPixelDimPtr(), 100, 1000);
 		ImGui::DragFloat("Quality - Size", terrainImageGenerator.getScalePtr(), 0.1f, 0.1f, 100);
+		ImGui::InputInt("Pixel width bad image", terrainImageGeneratorBad.getPixelDimPtr(), 100, 1000);
+		ImGui::DragFloat("Quality - Size bad image", terrainImageGeneratorBad.getScalePtr(), 0.1f, 0.1f, 100);
 		ImGui::End();
 
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 		// Update terrain image
-		terrainImageGenerator.updateGPU(terrainParameters.updateGPU());
+		bool paramsChanged{ terrainParameters.updateGPU() };
+		terrainImageGenerator.updateGPU(paramsChanged);
+		terrainImageGeneratorBad.updateGPU(paramsChanged);
 
 		glfwSwapBuffers(mWindow);
 		glfwPollEvents();

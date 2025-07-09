@@ -50,7 +50,7 @@ void Terrain::updatePixelDim() {
 }
 
 void Terrain::bindImage(int unit) {
-	glActiveTexture(GL_TEXTURE0);
+	glActiveTexture(GL_TEXTURE0 + unit);
 	mColorTex.use(GL_TEXTURE_2D);
 }
 
