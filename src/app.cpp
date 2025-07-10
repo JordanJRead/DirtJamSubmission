@@ -57,8 +57,8 @@ void App::loop() {
 	int maxShellCountGUI{ 3 };
 
 	TerrainParamsBuffer terrainParameters{ 15, 10.6, 0.47, 2.02 };
-	Terrain terrainImageGenerator{ 1024 * 9, 2, mScreenWidth, mScreenHeight };
-	Terrain terrainImageGeneratorBad{ 1024 * 6, 16, mScreenWidth, mScreenHeight };
+	TerrainImageGenerator terrainImageGenerator{ 1024 * 9, 2, mScreenWidth, mScreenHeight };
+	TerrainImageGenerator terrainImageGeneratorBad{ 1024 * 6, 16, mScreenWidth, mScreenHeight };
 
 	bool perFragNormalsGUI{ true };
 

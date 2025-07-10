@@ -60,6 +60,12 @@
     <ClCompile Include="src\imgui_widgets.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\terrainnoise.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\terrainparamsbuffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Library Include="libraries\glfw3dll.lib" />
@@ -120,6 +126,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\OpenGLObjects\TEX.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\terrainparamsbuffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\chunkmanager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\chunk.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

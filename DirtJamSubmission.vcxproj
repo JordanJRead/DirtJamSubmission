@@ -143,6 +143,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="src\app.cpp" />
     <ClCompile Include="src\camera.cpp" />
+    <ClCompile Include="src\chunkmanager.cpp" />
     <ClCompile Include="src\glad.c" />
     <ClCompile Include="src\imgui.cpp" />
     <ClCompile Include="src\imgui_demo.cpp" />
@@ -153,7 +154,7 @@
     <ClCompile Include="src\imgui_widgets.cpp" />
     <ClCompile Include="src\plane.cpp" />
     <ClCompile Include="src\shader.cpp" />
-    <ClCompile Include="src\terrainnoise.cpp" />
+    <ClCompile Include="src\terrainimagegenerator.cpp" />
     <ClCompile Include="src\terrainparamsbuffer.cpp" />
     <ClCompile Include="src\vertexarray.cpp" />
   </ItemGroup>
@@ -166,6 +167,7 @@
   <ItemGroup>
     <ClInclude Include="include\app.h" />
     <ClInclude Include="include\camera.h" />
+    <ClInclude Include="include\chunkmanager.h" />
     <ClInclude Include="include\imgui\imconfig.h" />
     <ClInclude Include="include\imgui\imgui.h" />
     <ClInclude Include="include\imgui\imgui_impl_glfw.h" />
@@ -180,7 +182,7 @@
     <ClInclude Include="include\plane.h" />
     <ClInclude Include="include\random.h" />
     <ClInclude Include="include\shader.h" />
-    <ClInclude Include="include\terrainnoise.h" />
+    <ClInclude Include="include\terrainimagegenerator.h" />
     <ClInclude Include="include\terrainparamsbuffer.h" />
     <ClInclude Include="include\vertexarray.h" />
   </ItemGroup>

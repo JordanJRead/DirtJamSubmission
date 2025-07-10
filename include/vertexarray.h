@@ -11,7 +11,7 @@ public:
 	void create(const std::vector<float>& vertexData, const std::vector<unsigned int>& vertexIndices, const std::vector<int>& vertexLayout);
 	void updateVertices(const std::vector<float>& vertexData, const std::vector<unsigned int>& vertexIndices);
 	void use() const { mVAO.use(); }
-	size_t getIndexCount() { return mIndexCount; }
+	size_t getIndexCount() const { return mIndexCount; }
 
 private:
 	VAO mVAO;
