@@ -153,7 +153,7 @@
     <ClCompile Include="src\imgui_widgets.cpp" />
     <ClCompile Include="src\plane.cpp" />
     <ClCompile Include="src\shader.cpp" />
-    <ClCompile Include="src\terrainnoise.cpp" />
+    <ClCompile Include="src\terrainimagegenerator.cpp" />
     <ClCompile Include="src\terrainparamsbuffer.cpp" />
     <ClCompile Include="src\vertexarray.cpp" />
   </ItemGroup>
@@ -180,7 +180,7 @@
     <ClInclude Include="include\plane.h" />
     <ClInclude Include="include\random.h" />
     <ClInclude Include="include\shader.h" />
-    <ClInclude Include="include\terrainnoise.h" />
+    <ClInclude Include="include\terrainimagegenerator.h" />
     <ClInclude Include="include\terrainparamsbuffer.h" />
     <ClInclude Include="include\vertexarray.h" />
   </ItemGroup>
