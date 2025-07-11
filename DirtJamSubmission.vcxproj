@@ -182,6 +182,7 @@
     <ClInclude Include="include\shader.h" />
     <ClInclude Include="include\terrainimagegenerator.h" />
     <ClInclude Include="include\terrainparamsbuffer.h" />
+    <ClInclude Include="include\terrainrenderer.h" />
     <ClInclude Include="include\vertexarray.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

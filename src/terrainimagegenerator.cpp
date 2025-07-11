@@ -38,11 +38,11 @@ void TerrainImageGenerator::bindImage(int unit) {
 	mColorTex.use(GL_TEXTURE_2D);
 }
 
-void TerrainImageGenerator::updateWorldSize(float worldSize) {
+void TerrainImageGenerator::setWorldSize(float worldSize) {
 	mWorldSize = worldSize;
 }
 
-void TerrainImageGenerator::updateWorldPos(const glm::vec3& worldPos) {
+void TerrainImageGenerator::setWorldPos(const glm::vec3& worldPos) {
 	mWorldPos = worldPos;
 }
 

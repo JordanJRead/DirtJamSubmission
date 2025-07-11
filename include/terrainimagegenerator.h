@@ -17,6 +17,11 @@ public:
 	float getWorldSize() { return mWorldSize; }
 	const glm::vec3& getWorldPos() { return mWorldPos; }
 
+	void updatePixelDim(int pixelDim);
+	void setWorldSize(float worldSize);
+	void setWorldPos(const glm::vec3& worldPos);
+	void updateTexture(const VertexArray& screenQuad, const Shader& terrainImageShader);
+
 private:
 	FBO mFBO;
 	TEX mColorTex;
@@ -27,12 +32,6 @@ private:
 	int mScreenWidth;
 	int mScreenHeight;
 	glm::vec3 mWorldPos;
-
-private:
-	void updatePixelDim(int pixelDim);
-	void updateWorldSize(float worldSize);
-	void updateWorldPos(const glm::vec3& worldPos);
-	void updateTexture(const VertexArray& screenQuad, const Shader& terrainImageShader);
 };
 
 #endif

@@ -7,7 +7,6 @@
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
 #include "terrainparamsbuffer.h"
-#include "terrainnoise.h"
 
 App::App(int screenWidth, int screenHeight, GLFWwindow* window)
 	: mCamera{ screenWidth, screenHeight }

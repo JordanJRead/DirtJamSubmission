@@ -1,13 +1,98 @@
 #ifndef TERRAIN_RENDERER_H
 #define TERRAIN_RENDERER_H
 
+#include "shader.h"
 #include "glm/glm.hpp"
 #include "vertexarray.h"
 #include "terrainimagegenerator.h"
+#include "plane.h"
+#include <array>
 
+//template <int ImageCount>
 class TerrainRenderer {
 public:
-	void render(const glm::vec3& cameraPos);
+	TerrainRenderer(int screenWidth, int screenHeight, const glm::vec3& cameraPos,
+		int smallChunkWidth, int smallCountCount, int largeChunkRingCount,
+		std::array<int, ImageCount> imagePixelDims, std::array<float, ImageCount> imageWorldSizes,
+		int lowQualityPlaneVertexDensity, int medQualityPlaneVertexDensity, int highQualityPlaneVertexDensity)
+		: mSmallChunkWidth{ smallChunkWidth }
+		, mSmallChunkCount{ smallCountCount }
+		, mLargeChunkRingCount{ largeChunkRingCount }
+
+		, mLowQualityPlane{ 1, mLowQualityPlaneVertexDensity, {}, 0 }
+		, mMedQualityPlane{ 1, mMedQualityPlaneVertexDensity, {}, 0 }
+		, mHighQualityPlane{ 1, mHighQualityPlaneVertexDensity, {}, 0 }
+
+		, mLowQualityPlaneVertexDensity{ lowQualityPlaneVertexDensity }
+		, mMedQualityPlaneVertexDensity{ medQualityPlaneVertexDensity }
+		, mHighQualityPlaneVertexDensity{ highQualityPlaneVertexDensity }
+
+		, mTerrainImageShader{ "shaders/terrainnoise.vert", "shaders/terrainnoise.frag" }
+		, mTerrainShader{ "shaders/terrainnoise.vert", "shaders/terrainnoise.frag" }
+
+		, mImageWorldPositions{ mImageWorldPositions }
+		, mImagePixelDims{ imagePixelDims }
+		, mImageWorldSizes{ imageWorldSizes }
+
+		, mImages{ {
+			{mImagePixelDims[0], mImageWorldSizes[0], screenWidth, screenHeight, getClosestWorldPixelPos(cameraPos)},
+			{mImagePixelDims[1], mImageWorldSizes[1], screenWidth, screenHeight, getClosestWorldPixelPos(cameraPos)},
+			{mImagePixelDims[2], mImageWorldSizes[2], screenWidth, screenHeight, getClosestWorldPixelPos(cameraPos)}
+		} }
+	{
+		std::vector<float> vertexData{
+		-1, -1,
+		 1, -1,
+		-1,  1,
+		 1,  1
+		};
+
+		std::vector<unsigned int> indices{
+			0, 1, 2, 1, 2, 3
+		};
+
+		std::vector<int> attribs{
+			2
+		};
+
+		mScreenQuad.create(vertexData, indices, attribs);
+	}
+	void render(const glm::vec3& cameraPos) {
+		// Update plane types
+		if (mLowQualityPlaneVertexDensity != mLowQualityPlane.getVertexDensity()) {
+			mLowQualityPlane.rebuild(1, mLowQualityPlaneVertexDensity);
+		}
+		if (mMedQualityPlaneVertexDensity != mMedQualityPlane.getVertexDensity()) {
+			mMedQualityPlane.rebuild(1, mMedQualityPlaneVertexDensity);
+		}
+		if (mHighQualityPlaneVertexDensity != mHighQualityPlane.getVertexDensity()) {
+			mHighQualityPlane.rebuild(1, mHighQualityPlaneVertexDensity);
+		}
+
+		// Update images
+		for (int i{ 0 }; i < ImageCount; ++i) {
+			bool hasImageChanged{ false };
+			if (mImages[i].getWorldSize() != mImageWorldSizes[i]) {
+				mImages[i].setWorldSize(mImageWorldSizes[i]);
+				hasImageChanged = true;
+			}
+			if (mImages[i].getPixelDim() != mImagePixelDims[i]) {
+				mImages[i].updatePixelDim(mImagePixelDims[i]);
+				hasImageChanged = true;
+			}
+			if (mImages[i].getWorldPos() != mImageWorldPositions[i]) {
+				mImages[i].setWorldPos(mImageWorldPositions[i]);
+				hasImageChanged = true;
+			}
+			if (hasImageChanged) {
+				mImages[i].updateTexture(mScreenQuad, mTerrainImageShader);
+			}
+		}
+
+		mTerrainShader.use();
+		
+	}
+	void renderUI();
 	glm::vec3 getClosestWorldPixelPos(const glm::vec3 pos);
 
 private:
@@ -19,33 +104,24 @@ private:
 	int mSmallChunkWidth;
 	int mSmallChunkCount;
 	int mLargeChunkRingCount;
-	VertexArray mLowQualityPlane; // Maybe make plane objects?
-	VertexArray mMedQualityPlane;
-	VertexArray mHighQualityPlane;
+
+	std::array<int, ImageCount> mImagePixelDims;
+	std::array<float, ImageCount> mImageWorldSizes;
+	std::array<glm::vec3, ImageCount> mImageWorldPositions;
+	std::array<TerrainImageGenerator, ImageCount> mImages;
+
+	int mLowQualityPlaneVertexDensity;
+	int mMedQualityPlaneVertexDensity;
+	int mHighQualityPlaneVertexDensity;
+
+	Shader mTerrainImageShader;
+	Shader mTerrainShader;
+
+	Plane mLowQualityPlane;
+	Plane mMedQualityPlane;
+	Plane mHighQualityPlane;
+
 	VertexArray mScreenQuad;
-
-	/*
-		std::vector<float> vertexData{
-		-1, -1,
-		 1, -1,
-		-1,  1,
-		 1,  1
-	};
-
-	std::vector<unsigned int> indices{
-		0, 1, 2, 1, 2, 3
-	};
-
-	std::vector<int> attribs{
-		2
-	};
-
-	mVertexArray.create(vertexData, indices, attribs);
-	*/
-
-	TerrainImageGenerator mLowQualityImage;
-	TerrainImageGenerator mMedQualityImage;
-	TerrainImageGenerator mHighQualityImage;
 };
 
 #endif
