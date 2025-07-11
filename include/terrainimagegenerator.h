@@ -10,16 +10,16 @@ class Shader;
 
 class TerrainImageGenerator {
 public:
-	TerrainImageGenerator(int pixelDim, float worldSize, int screenWidth, int screenHeight, const glm::vec3& worldPos);
+	TerrainImageGenerator(int pixelDim, float worldSize, int screenWidth, int screenHeight, const glm::vec2& worldPos);
 	void bindImage(int unit);
 
 	int getPixelDim() { return mPixelDim; }
 	float getWorldSize() { return mWorldSize; }
-	const glm::vec3& getWorldPos() { return mWorldPos; }
+	const glm::vec2& getWorldPos() { return mWorldPos; }
 
 	void updatePixelDim(int pixelDim);
 	void setWorldSize(float worldSize);
-	void setWorldPos(const glm::vec3& worldPos);
+	void setWorldPos(const glm::vec2& worldPos);
 	void updateTexture(const VertexArray& screenQuad, const Shader& terrainImageShader);
 
 private:
@@ -31,7 +31,7 @@ private:
 
 	int mScreenWidth;
 	int mScreenHeight;
-	glm::vec3 mWorldPos;
+	glm::vec2 mWorldPos;
 };
 
 #endif

@@ -7,30 +7,37 @@
 #include "terrainimagegenerator.h"
 #include "plane.h"
 #include <array>
+#include <string>
+#include "artisticparamsbuffer.h"
+#include "imgui/imgui.h"
 
+constexpr int ImageCount{ 3 };
 //template <int ImageCount>
+
 class TerrainRenderer {
 public:
 	TerrainRenderer(int screenWidth, int screenHeight, const glm::vec3& cameraPos,
-		int smallChunkWidth, int smallCountCount, int largeChunkRingCount,
-		std::array<int, ImageCount> imagePixelDims, std::array<float, ImageCount> imageWorldSizes,
+		int smallChunkWidth, int smallCountCount, int largeChunkRingCount, const ArtisticParamsBuffer& artistParams,
+		std::array<int, ImageCount> imagePixelDims, std::array<float, ImageCount> imageWorldSizes, std::array<glm::vec2, ImageCount> imageWorldPositions,
 		int lowQualityPlaneVertexDensity, int medQualityPlaneVertexDensity, int highQualityPlaneVertexDensity)
 		: mSmallChunkWidth{ smallChunkWidth }
 		, mSmallChunkCount{ smallCountCount }
 		, mLargeChunkRingCount{ largeChunkRingCount }
-
-		, mLowQualityPlane{ 1, mLowQualityPlaneVertexDensity, {}, 0 }
-		, mMedQualityPlane{ 1, mMedQualityPlaneVertexDensity, {}, 0 }
-		, mHighQualityPlane{ 1, mHighQualityPlaneVertexDensity, {}, 0 }
+		
+		, mArtisticParams{ artistParams }
 
 		, mLowQualityPlaneVertexDensity{ lowQualityPlaneVertexDensity }
 		, mMedQualityPlaneVertexDensity{ medQualityPlaneVertexDensity }
 		, mHighQualityPlaneVertexDensity{ highQualityPlaneVertexDensity }
 
+		, mLowQualityPlane{ mLowQualityPlaneVertexDensity }
+		, mMedQualityPlane{ mMedQualityPlaneVertexDensity }
+		, mHighQualityPlane{ mHighQualityPlaneVertexDensity }
+
 		, mTerrainImageShader{ "shaders/terrainnoise.vert", "shaders/terrainnoise.frag" }
 		, mTerrainShader{ "shaders/terrainnoise.vert", "shaders/terrainnoise.frag" }
 
-		, mImageWorldPositions{ mImageWorldPositions }
+		, mImageWorldPositions{ imageWorldPositions }
 		, mImagePixelDims{ imagePixelDims }
 		, mImageWorldSizes{ imageWorldSizes }
 
@@ -56,43 +63,79 @@ public:
 		};
 
 		mScreenQuad.create(vertexData, indices, attribs);
+
+		// Set shader uniforms
+		mTerrainShader.use();
+		mTerrainShader.setInt("imageCount", ImageCount);
+		for (int i{ 0 }; i < ImageCount; ++i) {
+			std::string indexString{ std::to_string(i) };
+			mTerrainShader.setInt("images[" + indexString + "]", i);
+			mTerrainShader.setFloat("imageScales[" + indexString + "]", mImageWorldSizes[i]);
+			mTerrainShader.setVector2("imagePositions[" + indexString + "]", mImageWorldPositions[i]);
+		}
 	}
+
 	void render(const glm::vec3& cameraPos) {
+		mTerrainShader.use();
+
 		// Update plane types
-		if (mLowQualityPlaneVertexDensity != mLowQualityPlane.getVertexDensity()) {
-			mLowQualityPlane.rebuild(1, mLowQualityPlaneVertexDensity);
+		if (mLowQualityPlaneVertexDensity != mLowQualityPlane.getVerticesPerEdge()) {
+			mLowQualityPlane.rebuild(mLowQualityPlaneVertexDensity);
 		}
-		if (mMedQualityPlaneVertexDensity != mMedQualityPlane.getVertexDensity()) {
-			mMedQualityPlane.rebuild(1, mMedQualityPlaneVertexDensity);
+		if (mMedQualityPlaneVertexDensity != mMedQualityPlane.getVerticesPerEdge()) {
+			mMedQualityPlane.rebuild(mMedQualityPlaneVertexDensity);
 		}
-		if (mHighQualityPlaneVertexDensity != mHighQualityPlane.getVertexDensity()) {
-			mHighQualityPlane.rebuild(1, mHighQualityPlaneVertexDensity);
+		if (mHighQualityPlaneVertexDensity != mHighQualityPlane.getVerticesPerEdge()) {
+			mHighQualityPlane.rebuild(mHighQualityPlaneVertexDensity);
 		}
 
 		// Update images
 		for (int i{ 0 }; i < ImageCount; ++i) {
+
+			// TODO find out if the images should move, and to where
+
+			std::string indexString{ std::to_string(i) };
 			bool hasImageChanged{ false };
+
 			if (mImages[i].getWorldSize() != mImageWorldSizes[i]) {
 				mImages[i].setWorldSize(mImageWorldSizes[i]);
+				mTerrainShader.setFloat("imageScales[" + indexString + "]", mImageWorldSizes[i]);
 				hasImageChanged = true;
 			}
+
 			if (mImages[i].getPixelDim() != mImagePixelDims[i]) {
 				mImages[i].updatePixelDim(mImagePixelDims[i]);
 				hasImageChanged = true;
 			}
-			if (mImages[i].getWorldPos() != mImageWorldPositions[i]) {
+
+			if (mImages[i].getWorldPos() != mImageWorldPositions[i]) { // Updated automatically
 				mImages[i].setWorldPos(mImageWorldPositions[i]);
+				mTerrainShader.setVector2("imagePositions[" + indexString + "]", mImageWorldPositions[i]);
 				hasImageChanged = true;
 			}
+
 			if (hasImageChanged) {
-				mImages[i].updateTexture(mScreenQuad, mTerrainImageShader);
+				mImages[i].updateTexture(mScreenQuad, mTerrainImageShader); // binds another shader
 			}
 		}
 
 		mTerrainShader.use();
 		
 	}
-	void renderUI();
+	void renderUI() {
+		mArtisticParams.renderUI();
+
+		ImGui::Begin("Plane Chunking");
+		ImGui::End();
+
+		ImGui::Begin("Terrain Images");
+		for (int i{ 0 }; i < ImageCount; ++i) {
+			ImGui::DragFloat("World size", &mImageWorldSizes[i], 1, 1, 100000);
+			ImGui::InputInt("Pixel quality", &mImagePixelDims[i], 100, 1000);
+		}
+		ImGui::End();
+	}
+
 	glm::vec3 getClosestWorldPixelPos(const glm::vec3 pos);
 
 private:
@@ -105,9 +148,11 @@ private:
 	int mSmallChunkCount;
 	int mLargeChunkRingCount;
 
+	ArtisticParamsBuffer mArtisticParams;
+
 	std::array<int, ImageCount> mImagePixelDims;
 	std::array<float, ImageCount> mImageWorldSizes;
-	std::array<glm::vec3, ImageCount> mImageWorldPositions;
+	std::array<glm::vec2, ImageCount> mImageWorldPositions;
 	std::array<TerrainImageGenerator, ImageCount> mImages;
 
 	int mLowQualityPlaneVertexDensity;

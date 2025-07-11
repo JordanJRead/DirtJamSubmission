@@ -4,7 +4,7 @@
 #include "vertexarray.h"
 #include "shader.h"
 
-TerrainImageGenerator::TerrainImageGenerator(int pixelDim, float worldSize, int screenWidth, int screenHeight, const glm::vec3& worldPos)
+TerrainImageGenerator::TerrainImageGenerator(int pixelDim, float worldSize, int screenWidth, int screenHeight, const glm::vec2& worldPos)
 	: mWorldSize{ worldSize }
 	, mScreenWidth{ screenWidth }
 	, mScreenHeight{ screenHeight }
@@ -42,7 +42,7 @@ void TerrainImageGenerator::setWorldSize(float worldSize) {
 	mWorldSize = worldSize;
 }
 
-void TerrainImageGenerator::setWorldPos(const glm::vec3& worldPos) {
+void TerrainImageGenerator::setWorldPos(const glm::vec2& worldPos) {
 	mWorldPos = worldPos;
 }
 
@@ -54,7 +54,7 @@ void TerrainImageGenerator::updateTexture(const VertexArray& screenQuad, const S
 	terrainImageShader.use();
 
 	terrainImageShader.setFloat("scale", mWorldSize);
-	terrainImageShader.setVector3("worldPos", mWorldPos);
+	terrainImageShader.setVector2("worldPos", mWorldPos);
 
 	glDrawElements(GL_TRIANGLES, screenQuad.getIndexCount(), GL_UNSIGNED_INT, 0);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);

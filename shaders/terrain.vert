@@ -3,20 +3,34 @@
 
 layout(location = 0) in vec2 vPos;
 
-uniform mat4 view;
-uniform mat4 proj;
-uniform float planeWorldWidth;
-
-uniform int imageCount;
-uniform float imageScales[];
-uniform sampler2D images[];
-uniform vec3 imagePositions[];
-
-uniform int shellIndex;
-uniform float extrudePerShell;
-
 out vec2 flatWorldPos;
 out vec3 viewPos;
+
+// Per app
+uniform int imageCount;
+uniform sampler2D images[];
+
+// Per whenever they get changed
+uniform float imageScales[];
+uniform vec2 imagePositions[];
+
+layout(std140, binding = 1) uniform ArtisticParams {
+	uniform float extrudePerShell;
+	uniform float maxFogDist;
+	uniform float colorDotCutoff;
+	uniform float shellTexelScale;
+	uniform float cutoffLossPerShell;
+	uniform float cutoffBase;
+	uniform int maxShellCount;
+};
+
+// Per frame
+uniform mat4 view;
+uniform mat4 proj;
+
+// Per plane
+uniform float planeWorldWidth;
+uniform int shellIndex;
 
 vec3 getTerrainInfo(vec2 worldPos) {
 	for (int i = 0; i < imageCount; ++i) {

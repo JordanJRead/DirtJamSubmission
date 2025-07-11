@@ -10,8 +10,6 @@
 
 App::App(int screenWidth, int screenHeight, GLFWwindow* window)
 	: mCamera{ screenWidth, screenHeight }
-	, mTerrainShader{ "shaders/terrain.vert", "shaders/terrain.frag" }
-	, mGridShader{ "shaders/grid.vert", "shaders/grid.frag" }
 	, mWindow{ window }
 	, mScreenWidth{ screenWidth }
 	, mScreenHeight{ screenHeight }
@@ -27,9 +25,6 @@ App::App(int screenWidth, int screenHeight, GLFWwindow* window)
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_DEPTH_TEST);
 	glClearColor(0.5f, 0.5f, 0.5f, 1);
-	mTerrainShader.use();
-	mTerrainShader.setInt("terrainImage", 0);
-	mTerrainShader.setInt("terrainImageBad", 1);
 }
 
 void App::handleInput() {
@@ -44,26 +39,10 @@ void App::loop() {
 
 	bool wireModeGUI{ false };
 	bool displayGridGUI{ true };
-	int planeWidthGUI{ 500 };
-	int planeVertexDensityGUI{ 10 };
-	int labelGUI{ 0 };
-	float maxFogDistGUI{ 25 };
-	float colorDotCutoffGUI{ 0.5 };
-	float textureScaleGUI{ 90 };
-	float extrudePerShellGUI{ 0.01 };
-	float cutoffLossPerShellGUI{ 0.2 };
-	float shellCutoffBaseGUI{ 0.2 };
-	int maxShellCountGUI{ 3 };
 
 	TerrainParamsBuffer terrainParameters{ 15, 10.6, 0.47, 2.02 };
-	Terrain terrainImageGenerator{ 1024 * 9, 2, mScreenWidth, mScreenHeight };
-	Terrain terrainImageGeneratorBad{ 1024 * 6, 16, mScreenWidth, mScreenHeight };
 
-	bool perFragNormalsGUI{ true };
-
-	Plane terrainPlane{ planeWidthGUI, planeVertexDensityGUI, {}, 0};
-	Plane worldGridPlane{ 100, 1, {}, 0 };
-	terrainPlane.useVAO();
+	Plane worldGridPlane{ 2 };
 
 	glfwSwapInterval(0);
 
@@ -96,7 +75,7 @@ void App::loop() {
 		mTerrainShader.setMatrix4("proj", mCamera.getProjectionMatrix());
 
 		// Plane variables
-		if (planeWidthGUI != terrainPlane.getWidth() || planeVertexDensityGUI != terrainPlane.getVertexDensity()) {
+		if (planeWidthGUI != terrainPlane.getWidth() || planeVertexDensityGUI != terrainPlane.getVerticesPerEdge()) {
 			// Handle invalid data
 			if (planeWidthGUI <= 0)
 				planeWidthGUI = 1;
@@ -119,7 +98,7 @@ void App::loop() {
 		mTerrainShader.setFloat("cutoffBase", shellCutoffBaseGUI);
 		mTerrainShader.setInt("maxShellCount", maxShellCountGUI);
 
-		terrainPlane.useVAO();
+		terrainPlane.useVertexArray();
 		terrainImageGenerator.bindImage(0);
 		terrainImageGeneratorBad.bindImage(1);
 
@@ -135,7 +114,7 @@ void App::loop() {
 			mGridShader.setMatrix4("view", mCamera.getViewMatrix());
 			mGridShader.setMatrix4("proj", mCamera.getProjectionMatrix());
 			mGridShader.setFloat("scale", worldGridPlane.getWidth());
-			worldGridPlane.useVAO();
+			worldGridPlane.useVertexArray();
 			glDrawElements(GL_TRIANGLES, worldGridPlane.getIndexCount(), GL_UNSIGNED_INT, 0);
 		}
 

@@ -142,6 +142,7 @@
     <ClCompile Include="include\OpenGLObjects\VAO.h" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="src\app.cpp" />
+    <ClCompile Include="src\artisticparamsbuffer.cpp" />
     <ClCompile Include="src\camera.cpp" />
     <ClCompile Include="src\glad.c" />
     <ClCompile Include="src\imgui.cpp" />
@@ -165,6 +166,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\app.h" />
+    <ClInclude Include="include\artisticparamsbuffer.h" />
     <ClInclude Include="include\camera.h" />
     <ClInclude Include="include\imgui\imconfig.h" />
     <ClInclude Include="include\imgui\imgui.h" />

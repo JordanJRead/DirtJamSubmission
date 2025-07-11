@@ -5,42 +5,38 @@ in vec2 flatWorldPos;
 in vec3 viewPos;
 out vec4 FragColor;
 
-layout(std140, binding = 0) uniform terrainParams {
-	uniform int octaveCount;
-	uniform float initialAmplitude;
-	uniform float amplitudeDecay;
-	uniform float spreadFactor;
+// Per app probably
+uniform int imageCount;
+uniform sampler2D images[];
+
+// Per whenever they get changed
+uniform float imageScales[];
+uniform vec2 imagePositions[];
+
+layout(std140, binding = 1) uniform ArtisticParams {
+	uniform float extrudePerShell;
+	uniform float maxFogDist;
+	uniform float colorDotCutoff;
+	uniform float shellTexelScale;
+	uniform float cutoffLossPerShell;
+	uniform float cutoffBase;
+	uniform int maxShellCount;
 };
 
-uniform float samplingScale;
-uniform float samplingScaleBad;
-uniform sampler2D terrainImage;
-uniform sampler2D terrainImageBad;
-
-uniform float maxFogDist;
-uniform float colorDotCutoff;
+// Per plane
 uniform int shellIndex;
-uniform float textureScale;
-uniform float cutoffLossPerShell;
-uniform float cutoffBase;
-uniform int maxShellCount;
 
 vec3 getTerrainInfo(vec2 worldPos) {
-	vec2 sampleCoord = (worldPos / samplingScale) + vec2(0.5);
-	vec3 terrainInfo = texture(terrainImage, sampleCoord).xyz;
-	bool badTexture = false;
-
-	if (sampleCoord.x > 1 || sampleCoord.x < 0 || sampleCoord.y > 1 || sampleCoord.y < 0) {
-		badTexture = true;
-		sampleCoord = (worldPos / samplingScaleBad) + vec2(0.5);
-		terrainInfo = texture(terrainImageBad, sampleCoord).xyz;
-		if (sampleCoord.x > 1 || sampleCoord.x < 0 || sampleCoord.y > 1 || sampleCoord.y < 0) {
-			terrainInfo = vec3(-initialAmplitude, 0, 0);
+	for (int i = 0; i < imageCount; ++i) {
+		vec2 sampleCoord = ((worldPos - imagePositions[i]) / imageScales[i]) + vec2(0.5);
+		
+		if (!(sampleCoord.x > 1 || sampleCoord.x < 0 || sampleCoord.y > 1 || sampleCoord.y < 0)) {
+			vec3 terrainInfo = texture(images[i], sampleCoord).rgb;
+			terrainInfo.yz /= imageScales[i];
+			return terrainInfo;
 		}
 	}
-
-	terrainInfo.yz /= badTexture ? samplingScaleBad : samplingScale;
-	return terrainInfo;
+	return vec3(0, 0, 0);
 }
 
 float easeInExpo(float x) {

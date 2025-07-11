@@ -19,6 +19,9 @@ public:
 	void setVector3(std::string_view name, const glm::vec3& v) const {
 		glUniform3fv(glGetUniformLocation(mID, name.data()), 1, glm::value_ptr(v));
 	}
+	void setVector2(std::string_view name, const glm::vec2& v) const {
+		glUniform2fv(glGetUniformLocation(mID, name.data()), 1, glm::value_ptr(v));
+	}
 	void setFloat(std::string_view name, float f) const {
 		glUniform1f(glGetUniformLocation(mID, name.data()), f);
 	}
