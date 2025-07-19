@@ -7,12 +7,16 @@
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
 #include "terrainparamsbuffer.h"
+#include "artisticparamsbuffer.h"
+#include <array>
+#include "glm/glm.hpp"
 
 App::App(int screenWidth, int screenHeight, GLFWwindow* window)
 	: mCamera{ screenWidth, screenHeight }
 	, mWindow{ window }
 	, mScreenWidth{ screenWidth }
 	, mScreenHeight{ screenHeight }
+	, mTerrainRenderer{ screenWidth, screenHeight, mCamera.getPosition(), 16, 1, 1, ArtisticParamsData{ 0.2, 50, 0.8, 50, 0.2, 0.2, 3 }, TerrainParamsData{ 3, 5, 0.5, 5 }, {5000, 3000, 1000}, {5, 50, 500}, std::array<glm::vec2, 3> {glm::vec2{0}, glm::vec2{0}, glm::vec2{0}}, 2, 20, 50 }
 {
 	glfwSetWindowUserPointer(mWindow, this);
 	glfwSetCursorPosCallback(mWindow, mouseCallback);
@@ -70,99 +74,17 @@ void App::loop() {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// Terrain
-		mTerrainShader.use();
-		mTerrainShader.setMatrix4("view", mCamera.getViewMatrix());
-		mTerrainShader.setMatrix4("proj", mCamera.getProjectionMatrix());
-
-		// Plane variables
-		if (planeWidthGUI != terrainPlane.getWidth() || planeVertexDensityGUI != terrainPlane.getVerticesPerEdge()) {
-			// Handle invalid data
-			if (planeWidthGUI <= 0)
-				planeWidthGUI = 1;
-			if (planeVertexDensityGUI <= 0)
-				planeVertexDensityGUI = 1;
-			if (planeWidthGUI == 1 && planeVertexDensityGUI == 1)
-				planeVertexDensityGUI = 2;
-			terrainPlane.rebuild(planeWidthGUI, planeVertexDensityGUI);
-		}
-
-		// Render plane
-		mTerrainShader.setFloat("planeWorldWidth", terrainPlane.getWidth());
-		mTerrainShader.setFloat("samplingScale", *terrainImageGenerator.getScalePtr() * 22);
-		mTerrainShader.setFloat("samplingScaleBad", *terrainImageGeneratorBad.getScalePtr() * 22);
-		mTerrainShader.setFloat("maxFogDist", maxFogDistGUI);
-		mTerrainShader.setFloat("extrudePerShell", extrudePerShellGUI);
-		mTerrainShader.setFloat("colorDotCutoff", colorDotCutoffGUI);
-		mTerrainShader.setFloat("textureScale", textureScaleGUI);
-		mTerrainShader.setFloat("cutoffLossPerShell", cutoffLossPerShellGUI);
-		mTerrainShader.setFloat("cutoffBase", shellCutoffBaseGUI);
-		mTerrainShader.setInt("maxShellCount", maxShellCountGUI);
-
-		terrainPlane.useVertexArray();
-		terrainImageGenerator.bindImage(0);
-		terrainImageGeneratorBad.bindImage(1);
-
-		for (int shellI{ 0 }; shellI <= maxShellCountGUI; ++shellI) {
-			mTerrainShader.setInt("shellIndex", shellI);
-			glDrawElements(wireModeGUI ? GL_LINES : GL_TRIANGLES, terrainPlane.getIndexCount(), GL_UNSIGNED_INT, 0);
-		}
-
+		mTerrainRenderer.render(mCamera);
 
 		// Grid
-		if (displayGridGUI) {
-			mGridShader.use();
-			mGridShader.setMatrix4("view", mCamera.getViewMatrix());
-			mGridShader.setMatrix4("proj", mCamera.getProjectionMatrix());
-			mGridShader.setFloat("scale", worldGridPlane.getWidth());
-			worldGridPlane.useVertexArray();
-			glDrawElements(GL_TRIANGLES, worldGridPlane.getIndexCount(), GL_UNSIGNED_INT, 0);
-		}
-
-		// ImGUI
-		ImGui_ImplOpenGL3_NewFrame();
-		ImGui_ImplGlfw_NewFrame();
-		ImGui::NewFrame();
-
-		ImGui::Begin("TERRAIN PARAMETERS");
-		ImGui::Text("FPS: %f", 1 / displayDeltaTime);
-
-		ImGui::DragInt("Octaves", terrainParameters.getOctaveCountPtr(), 0.1f, 1, 50);
-		ImGui::DragFloat("Amplitude", terrainParameters.getInitialAmplitudePtr(), 0.1f);
-		ImGui::DragFloat("Amplitude decay", terrainParameters.getAmplitudeDecayPtr(), 0.0001f);
-		ImGui::DragFloat("Spread", terrainParameters.getSpreadFactorPtr(), 0.001f);
-		ImGui::DragFloat("Visibility", &maxFogDistGUI, 1, 1, 10000);
-		ImGui::DragFloat("Color dot", &colorDotCutoffGUI, 0.01, 0, 1);
-		ImGui::End();
-
-		ImGui::Begin("SHELL TEXTURE PARAMETERS");
-		ImGui::DragFloat("Texture scale", &textureScaleGUI);
-		ImGui::DragFloat("Shell extrusion", &extrudePerShellGUI, 0.001, 0, 1);
-		ImGui::DragFloat("Shell falloff", &cutoffLossPerShellGUI, 0.01, 0, 1);
-		ImGui::DragFloat("Shell falloff base", &shellCutoffBaseGUI, 0.01, 0, 1);
-		ImGui::DragInt("Shell count", &maxShellCountGUI, 0.1, 0, 10);
-		ImGui::End();
-
-		ImGui::Begin("PLANE PARAMETERS");
-		ImGui::Checkbox("Wire", &wireModeGUI);
-		ImGui::Checkbox("Grid", &displayGridGUI);
-		ImGui::InputInt("Plane width", &planeWidthGUI, 1, 10);
-		ImGui::InputInt("Plane vertex density", &planeVertexDensityGUI, 1, 10);
-		ImGui::End();
-
-		ImGui::Begin("TERRAIN IMAGE");
-		ImGui::InputInt("Pixel width", terrainImageGenerator.getPixelDimPtr(), 100, 1000);
-		ImGui::DragFloat("Quality - Size", terrainImageGenerator.getScalePtr(), 0.1f, 0.1f, 100);
-		ImGui::InputInt("Pixel width bad image", terrainImageGeneratorBad.getPixelDimPtr(), 100, 1000);
-		ImGui::DragFloat("Quality - Size bad image", terrainImageGeneratorBad.getScalePtr(), 0.1f, 0.1f, 100);
-		ImGui::End();
-
-		ImGui::Render();
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-		// Update terrain image
-		bool paramsChanged{ terrainParameters.updateGPU() };
-		terrainImageGenerator.updateGPU(paramsChanged);
-		terrainImageGeneratorBad.updateGPU(paramsChanged);
+		//if (displayGridGUI) {
+		//	mGridShader.use();
+		//	mGridShader.setMatrix4("view", mCamera.getViewMatrix());
+		//	mGridShader.setMatrix4("proj", mCamera.getProjectionMatrix());
+		//	mGridShader.setFloat("scale", worldGridPlane.getWidth());
+		//	worldGridPlane.useVertexArray();
+		//	glDrawElements(GL_TRIANGLES, worldGridPlane.getIndexCount(), GL_UNSIGNED_INT, 0);
+		//}
 
 		glfwSwapBuffers(mWindow);
 		glfwPollEvents();

@@ -2,42 +2,39 @@
 #define TERRAIN_PARAMS_BUFFER_H
 
 #include "OpenGLObjects/BUF.h"
+#include "shaderguipair.h"
 
-/*
-int octaveCount;
-float initialAmplitude;
-float amplitudeDecay;
-float spreadFactor;
-*/
+struct TerrainParamsData {
+	int octaveCount;
+	float initialAmplitude;
+	float amplitudeDecay;
+	float spreadFactor;
+};
 
 class TerrainParamsBuffer {
 public:
 	TerrainParamsBuffer(int octaveCount, float initialAmplitude, float amplitudeDecay, float spreadFactor);
-	int* getOctaveCountPtr() { return &mOctaveCount; }
-	float* getInitialAmplitudePtr() { return &mInitialAmplitude; }
-	float* getAmplitudeDecayPtr() { return &mAmplitudeDecay; }
-	float* getSpreadFactorPtr() { return &mSpreadFactor; }
-	bool updateGPU();
+	TerrainParamsBuffer(const TerrainParamsData& data)
+		: mOctaveCount{ data.octaveCount }
+		, mInitialAmplitude{ data.initialAmplitude }
+		, mAmplitudeDecay{ data.amplitudeDecay }
+		, mSpreadFactor{ data.spreadFactor }
+	{
+		glBindBuffer(GL_UNIFORM_BUFFER, mBUF);
+		glBufferData(GL_UNIFORM_BUFFER, sizeof(int) + 3 * sizeof(float), nullptr, GL_STATIC_DRAW);
+		glBindBufferBase(GL_UNIFORM_BUFFER, 0, mBUF);
+		updateGPU(true);
+	}
+	void renderUI();
+	void updateGPU(bool force);
 
 private:
-	BUF mBuf;
+	BUF mBUF;
 
-	int mOctaveCount;
-	float mInitialAmplitude;
-	float mAmplitudeDecay;
-	float mSpreadFactor;
-
-	int mPrevOctaveCount;
-	float mPrevInitialAmplitude;
-	float mPrevAmplitudeDecay;
-	float mPrevSpreadFactor;
-
-private:
-	void verifyInput();
-	void updateOctaveCount();
-	void updateInitialAmplitude();
-	void updateAmplitudeDecay();
-	void updateSpreadFactor();
+	ShaderGUIPair<int> mOctaveCount;
+	ShaderGUIPair<float> mInitialAmplitude;
+	ShaderGUIPair<float> mAmplitudeDecay;
+	ShaderGUIPair<float> mSpreadFactor;
 };
 
 #endif

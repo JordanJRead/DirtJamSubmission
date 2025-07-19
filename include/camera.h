@@ -12,6 +12,7 @@ public:
 	void move(GLFWwindow* window, float deltaTime);
 	glm::mat4 getViewMatrix() const;
 	glm::mat4 getProjectionMatrix() const;
+	glm::vec3 getPosition() const { return mPosition; }
 
 private:
 	float mPitch{ 0 }; // In radians

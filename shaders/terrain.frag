@@ -7,11 +7,11 @@ out vec4 FragColor;
 
 // Per app probably
 uniform int imageCount;
-uniform sampler2D images[];
+uniform sampler2D images[3];
 
 // Per whenever they get changed
-uniform float imageScales[];
-uniform vec2 imagePositions[];
+uniform float imageScales[3];
+uniform vec2 imagePositions[3];
 
 layout(std140, binding = 1) uniform ArtisticParams {
 	uniform float extrudePerShell;
@@ -27,7 +27,7 @@ layout(std140, binding = 1) uniform ArtisticParams {
 uniform int shellIndex;
 
 vec3 getTerrainInfo(vec2 worldPos) {
-	for (int i = 0; i < imageCount; ++i) {
+	for (int i = 0; i < 3; ++i) {
 		vec2 sampleCoord = ((worldPos - imagePositions[i]) / imageScales[i]) + vec2(0.5);
 		
 		if (!(sampleCoord.x > 1 || sampleCoord.x < 0 || sampleCoord.y > 1 || sampleCoord.y < 0)) {
@@ -104,8 +104,8 @@ void main() {
 	float ambient = 0;
 
 	// Texturing
-	int x = getClosestInt(floor((flatWorldPos * textureScale).x));
-	int y = getClosestInt(floor((flatWorldPos * textureScale).y));
+	int x = getClosestInt(floor((flatWorldPos * shellTexelScale).x));
+	int y = getClosestInt(floor((flatWorldPos * shellTexelScale).y));
 	float randNum = randToFloat(rand(labelPoint(x, y)));
 
 	bool shallowEnough = diffuse >= colorDotCutoff;

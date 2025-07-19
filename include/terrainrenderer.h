@@ -8,8 +8,13 @@
 #include "plane.h"
 #include <array>
 #include <string>
+#include <string_view>
 #include "artisticparamsbuffer.h"
+#include "terrainparamsbuffer.h"
 #include "imgui/imgui.h"
+#include "imgui/imgui_impl_glfw.h"
+#include "imgui/imgui_impl_opengl3.h"
+#include "camera.h"
 
 constexpr int ImageCount{ 3 };
 //template <int ImageCount>
@@ -17,25 +22,26 @@ constexpr int ImageCount{ 3 };
 class TerrainRenderer {
 public:
 	TerrainRenderer(int screenWidth, int screenHeight, const glm::vec3& cameraPos,
-		int smallChunkWidth, int smallCountCount, int largeChunkRingCount, const ArtisticParamsBuffer& artistParams,
+		int smallChunkWidth, int smallChunkCount, int largeChunkRingCount, const ArtisticParamsData& artistParams, const TerrainParamsData& terrainParams,
 		std::array<int, ImageCount> imagePixelDims, std::array<float, ImageCount> imageWorldSizes, std::array<glm::vec2, ImageCount> imageWorldPositions,
 		int lowQualityPlaneVertexDensity, int medQualityPlaneVertexDensity, int highQualityPlaneVertexDensity)
 		: mSmallChunkWidth{ smallChunkWidth }
-		, mSmallChunkCount{ smallCountCount }
+		, mSmallChunkCount{ smallChunkCount }
 		, mLargeChunkRingCount{ largeChunkRingCount }
 		
 		, mArtisticParams{ artistParams }
+		, mTerrainParams{ terrainParams }
 
-		, mLowQualityPlaneVertexDensity{ lowQualityPlaneVertexDensity }
-		, mMedQualityPlaneVertexDensity{ medQualityPlaneVertexDensity }
-		, mHighQualityPlaneVertexDensity{ highQualityPlaneVertexDensity }
+		, mLowQualityPlaneVerticesPerEdge{ lowQualityPlaneVertexDensity }
+		, mMedQualityPlaneVerticesPerEdge{ medQualityPlaneVertexDensity }
+		, mHighQualityPlaneVerticesPerEdge{ highQualityPlaneVertexDensity }
 
-		, mLowQualityPlane{ mLowQualityPlaneVertexDensity }
-		, mMedQualityPlane{ mMedQualityPlaneVertexDensity }
-		, mHighQualityPlane{ mHighQualityPlaneVertexDensity }
+		, mLowQualityPlane{ mLowQualityPlaneVerticesPerEdge }
+		, mMedQualityPlane{ mMedQualityPlaneVerticesPerEdge }
+		, mHighQualityPlane{ mHighQualityPlaneVerticesPerEdge }
 
-		, mTerrainImageShader{ "shaders/terrainnoise.vert", "shaders/terrainnoise.frag" }
-		, mTerrainShader{ "shaders/terrainnoise.vert", "shaders/terrainnoise.frag" }
+		, mTerrainImageShader{ "shaders/terrainimage.vert", "shaders/terrainimage.frag" }
+		, mTerrainShader{ "shaders/terrain.vert", "shaders/terrain.frag" }
 
 		, mImageWorldPositions{ imageWorldPositions }
 		, mImagePixelDims{ imagePixelDims }
@@ -75,18 +81,19 @@ public:
 		}
 	}
 
-	void render(const glm::vec3& cameraPos) {
+	void render(const Camera& camera) {
+		renderUI();
 		mTerrainShader.use();
 
 		// Update plane types
-		if (mLowQualityPlaneVertexDensity != mLowQualityPlane.getVerticesPerEdge()) {
-			mLowQualityPlane.rebuild(mLowQualityPlaneVertexDensity);
+		if (mLowQualityPlaneVerticesPerEdge != mLowQualityPlane.getVerticesPerEdge()) {
+			mLowQualityPlane.rebuild(mLowQualityPlaneVerticesPerEdge);
 		}
-		if (mMedQualityPlaneVertexDensity != mMedQualityPlane.getVerticesPerEdge()) {
-			mMedQualityPlane.rebuild(mMedQualityPlaneVertexDensity);
+		if (mMedQualityPlaneVerticesPerEdge != mMedQualityPlane.getVerticesPerEdge()) {
+			mMedQualityPlane.rebuild(mMedQualityPlaneVerticesPerEdge);
 		}
-		if (mHighQualityPlaneVertexDensity != mHighQualityPlane.getVerticesPerEdge()) {
-			mHighQualityPlane.rebuild(mHighQualityPlaneVertexDensity);
+		if (mHighQualityPlaneVerticesPerEdge != mHighQualityPlane.getVerticesPerEdge()) {
+			mHighQualityPlane.rebuild(mHighQualityPlaneVerticesPerEdge);
 		}
 
 		// Update images
@@ -120,23 +127,25 @@ public:
 		}
 
 		mTerrainShader.use();
-		
-	}
-	void renderUI() {
-		mArtisticParams.renderUI();
+		mTerrainShader.setMatrix4("view", camera.getViewMatrix());
+		mTerrainShader.setMatrix4("proj", camera.getProjectionMatrix());
 
-		ImGui::Begin("Plane Chunking");
-		ImGui::End();
-
-		ImGui::Begin("Terrain Images");
-		for (int i{ 0 }; i < ImageCount; ++i) {
-			ImGui::DragFloat("World size", &mImageWorldSizes[i], 1, 1, 100000);
-			ImGui::InputInt("Pixel quality", &mImagePixelDims[i], 100, 1000);
+		for (int i{ 0 }; i < mImages.size(); ++i) {
+			mImages[i].bindImage(i);
 		}
-		ImGui::End();
+		// foreach plane
+		mTerrainShader.setVector3("planePos", camera.getPosition());
+		mTerrainShader.setFloat("planeWorldWidth", mSmallChunkWidth);
+		for (int i{ 0 }; i < mArtisticParams.getMaxShellCount(); ++i) {
+			mTerrainShader.setInt("shellIndex", i);
+			mHighQualityPlane.useVertexArray();
+			glDrawElements(GL_TRIANGLES, mHighQualityPlane.getIndexCount(), GL_UNSIGNED_INT, 0);
+		}
 	}
 
-	glm::vec3 getClosestWorldPixelPos(const glm::vec3 pos);
+	glm::vec3 getClosestWorldPixelPos(const glm::vec3 pos) {
+		return pos;
+	}
 
 private:
 	// The chunk collection consists of a square of smallChunkCount * smallChunkCount chunks, each having a width of smallChunkWidth
@@ -149,15 +158,16 @@ private:
 	int mLargeChunkRingCount;
 
 	ArtisticParamsBuffer mArtisticParams;
+	TerrainParamsBuffer mTerrainParams;
 
 	std::array<int, ImageCount> mImagePixelDims;
 	std::array<float, ImageCount> mImageWorldSizes;
 	std::array<glm::vec2, ImageCount> mImageWorldPositions;
 	std::array<TerrainImageGenerator, ImageCount> mImages;
 
-	int mLowQualityPlaneVertexDensity;
-	int mMedQualityPlaneVertexDensity;
-	int mHighQualityPlaneVertexDensity;
+	int mLowQualityPlaneVerticesPerEdge;
+	int mMedQualityPlaneVerticesPerEdge;
+	int mHighQualityPlaneVerticesPerEdge;
 
 	Shader mTerrainImageShader;
 	Shader mTerrainShader;
@@ -167,6 +177,30 @@ private:
 	Plane mHighQualityPlane;
 
 	VertexArray mScreenQuad;
+
+	void renderUI() {
+
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+
+		mArtisticParams.renderUI();
+		mTerrainParams.renderUI();
+
+		ImGui::Begin("Plane Chunking");
+		ImGui::End();
+
+		ImGui::Begin("Terrain Images");
+		for (int i{ 0 }; i < ImageCount; ++i) {
+			std::string indexString{ std::to_string(i + 1) };
+			ImGui::DragFloat(("World size " + indexString).c_str(), &mImageWorldSizes[i], 1, 1, 100000);
+			ImGui::InputInt(("Pixel quality " + indexString).c_str(), &mImagePixelDims[i], 100, 1000);
+		}
+		ImGui::End();
+
+		ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+	}
 };
 
 #endif

@@ -12,19 +12,20 @@ ArtisticParamsBuffer::ArtisticParamsBuffer(float extrudePerShell, float maxFogDi
 	, mMaxShellCount{ maxShellCount }
 {
 	glBindBuffer(GL_UNIFORM_BUFFER, mBUF);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(int) + 6 * sizeof(float), nullptr, GL_STATIC_DRAW);
 	glBindBufferBase(GL_UNIFORM_BUFFER, 1, mBUF);
 
 	updateGPU(true);
 }
 
-ArtisticParamsBuffer::ArtisticParamsBuffer(const ArtisticParamsBuffer& other)
-	: mExtrudePerShell{ other.mExtrudePerShell }
-	, mMaxFogDist{ other.mMaxFogDist }
-	, mColorDotCutoff{ other.mColorDotCutoff }
-	, mShellTexelScale{ other.mShellTexelScale }
-	, mShellCutoffLossPerShell{ other.mShellCutoffLossPerShell }
-	, mShellCutoffBase{ other.mShellCutoffBase }
-	, mMaxShellCount{ other.mMaxShellCount } { }
+//ArtisticParamsBuffer::ArtisticParamsBuffer(const ArtisticParamsBuffer& other)
+//	: mExtrudePerShell{ other.mExtrudePerShell }
+//	, mMaxFogDist{ other.mMaxFogDist }
+//	, mColorDotCutoff{ other.mColorDotCutoff }
+//	, mShellTexelScale{ other.mShellTexelScale }
+//	, mShellCutoffLossPerShell{ other.mShellCutoffLossPerShell }
+//	, mShellCutoffBase{ other.mShellCutoffBase }
+//	, mMaxShellCount{ other.mMaxShellCount } { }
 
 void ArtisticParamsBuffer::renderUI() {
 	ImGui::Begin("Artistic Parameters");
@@ -34,7 +35,7 @@ void ArtisticParamsBuffer::renderUI() {
 	ImGui::DragFloat("Shell texel scale", &mShellTexelScale.mGUI, 1, 1, 1000);
 	ImGui::DragFloat("Shell cutoff loss rate", &mShellCutoffLossPerShell.mGUI, 0.01, 0, 1);
 	ImGui::DragFloat("Shell cutoff base", &mShellCutoffBase.mGUI, 0.01, 0, 1);
-	ImGui::DragInt("Shell count (counting base)", &mMaxShellCount.mGUI, 0.1, 0, 10);
+	ImGui::DragInt("Shell count (counting base)", &mMaxShellCount.mGUI, 0.1, 1, 10);
 	ImGui::End();
 }
 
@@ -43,52 +44,52 @@ void ArtisticParamsBuffer::updateGPU(bool force) {
 
 	int offset{ 0 };
 
+	int size{ sizeof(float) };
 	if (mExtrudePerShell.hasDiff() || force) {
 		mExtrudePerShell.mShader = mExtrudePerShell.mGUI;
-		int size{ sizeof(float) };
 		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mExtrudePerShell.mShader);
-		offset += size;
 	}
+	offset += size;
 
+	size = sizeof(float);
 	if (mMaxFogDist.hasDiff() || force) {
 		mMaxFogDist.mShader = mMaxFogDist.mGUI;
-		int size{ sizeof(float) };
 		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mMaxFogDist.mShader);
-		offset += size;
 	}
+	offset += size;
 
+	size = sizeof(float);
 	if (mColorDotCutoff.hasDiff() || force) {
 		mColorDotCutoff.mShader = mColorDotCutoff.mGUI;
-		int size{ sizeof(float) };
 		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mColorDotCutoff.mShader);
-		offset += size;
 	}
+	offset += size;
 
+	size = sizeof(float);
 	if (mShellTexelScale.hasDiff() || force) {
 		mShellTexelScale.mShader = mShellTexelScale.mGUI;
-		int size{ sizeof(float) };
 		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mShellTexelScale.mShader);
-		offset += size;
 	}
+	offset += size;
 
+	size = sizeof(float);
 	if (mShellCutoffLossPerShell.hasDiff() || force) {
 		mShellCutoffLossPerShell.mShader = mShellCutoffLossPerShell.mGUI;
-		int size{ sizeof(float) };
 		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mShellCutoffLossPerShell.mShader);
-		offset += size;
 	}
+	offset += size;
 
+	size = sizeof(float);
 	if (mShellCutoffBase.hasDiff() || force) {
 		mShellCutoffBase.mShader = mShellCutoffBase.mGUI;
-		int size{ sizeof(float) };
 		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mShellCutoffBase.mShader);
-		offset += size;
 	}
+	offset += size;
 
+	size = sizeof(int);
 	if (mMaxShellCount.hasDiff() || force) {
 		mMaxShellCount.mShader = mMaxShellCount.mGUI;
-		int size{ sizeof(int) };
 		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mMaxShellCount.mShader);
-		offset += size;
 	}
+	offset += size;
 }
