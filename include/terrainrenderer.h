@@ -80,6 +80,7 @@ public:
 			mTerrainShader.setFloat("imageScales[" + indexString + "]", mImageWorldSizes[i]);
 			mTerrainShader.setVector2("imagePositions[" + indexString + "]", mImageWorldPositions[i]);
 			mImages[i].updateTexture(mScreenQuad, mTerrainImageShader);
+			mTerrainShader.use();
 		}
 	}
 
@@ -126,6 +127,7 @@ public:
 
 			if (hasImageChanged || hasTerrainChanged) {
 				mImages[i].updateTexture(mScreenQuad, mTerrainImageShader); // binds another shader
+				mTerrainShader.use();
 			}
 		}
 
@@ -139,7 +141,7 @@ public:
 		}
 		// foreach plane
 		glm::vec3 cameraPos{ getClosestWorldPixelPos(camera.getPosition()) };
-		mTerrainShader.setVector3("planePos", {0, 0, 0});
+		mTerrainShader.setVector3("planePos", {cameraPos.x, 0, cameraPos.z});
 		mTerrainShader.setFloat("planeWorldWidth", mSmallChunkWidth);
 		for (int i{ 0 }; i < mArtisticParams.getMaxShellCount(); ++i) {
 			mTerrainShader.setInt("shellIndex", i);
