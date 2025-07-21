@@ -8,7 +8,7 @@ struct ShaderGUIPair {
 	T mShader;
 	T mGUI;
 
-	bool hasDiff() { return mShader == mGUI; }
+	bool hasDiff() { return mShader != mGUI; }
 };
 
 #endif

@@ -2,17 +2,17 @@
 #include "glad/glad.h"
 #include "imgui.h"
 
-TerrainParamsBuffer::TerrainParamsBuffer(int octaveCount, float initialAmplitude, float amplitudeDecay, float spreadFactor)
-	: mOctaveCount{ octaveCount }
-	, mInitialAmplitude{ initialAmplitude }
-	, mAmplitudeDecay{ amplitudeDecay }
-	, mSpreadFactor{ spreadFactor }
-{
-	glBindBuffer(GL_UNIFORM_BUFFER, mBUF);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(int) + 3 * sizeof(float), nullptr, GL_STATIC_DRAW);
-	glBindBufferBase(GL_UNIFORM_BUFFER, 0, mBUF);
-	updateGPU(true);
-}
+//TerrainParamsBuffer::TerrainParamsBuffer(int octaveCount, float initialAmplitude, float amplitudeDecay, float spreadFactor)
+//	: mOctaveCount{ octaveCount }
+//	, mInitialAmplitude{ initialAmplitude }
+//	, mAmplitudeDecay{ amplitudeDecay }
+//	, mSpreadFactor{ spreadFactor }
+//{
+//	glBindBuffer(GL_UNIFORM_BUFFER, mBUF);
+//	glBufferData(GL_UNIFORM_BUFFER, sizeof(int) + 3 * sizeof(float), nullptr, GL_STATIC_DRAW);
+//	glBindBufferBase(GL_UNIFORM_BUFFER, 0, mBUF);
+//	updateGPU(true);
+//}
 
 void TerrainParamsBuffer::renderUI() {
 	ImGui::Begin("Terrain Parameters");

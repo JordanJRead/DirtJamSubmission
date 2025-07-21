@@ -15,6 +15,7 @@
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
 #include "camera.h"
+#include <iostream>
 
 constexpr int ImageCount{ 3 };
 //template <int ImageCount>
@@ -78,11 +79,13 @@ public:
 			mTerrainShader.setInt("images[" + indexString + "]", i);
 			mTerrainShader.setFloat("imageScales[" + indexString + "]", mImageWorldSizes[i]);
 			mTerrainShader.setVector2("imagePositions[" + indexString + "]", mImageWorldPositions[i]);
+			mImages[i].updateTexture(mScreenQuad, mTerrainImageShader);
 		}
 	}
 
 	void render(const Camera& camera) {
-		renderUI();
+		mTerrainParams.updateGPU(false);
+		mArtisticParams.updateGPU(false);
 		mTerrainShader.use();
 
 		// Update plane types
@@ -121,30 +124,36 @@ public:
 				hasImageChanged = true;
 			}
 
-			if (hasImageChanged) {
+			if (hasImageChanged || true) {
 				mImages[i].updateTexture(mScreenQuad, mTerrainImageShader); // binds another shader
 			}
 		}
 
 		mTerrainShader.use();
 		mTerrainShader.setMatrix4("view", camera.getViewMatrix());
+		std::cout << camera.getViewMatrix()[3].y << "\n";
 		mTerrainShader.setMatrix4("proj", camera.getProjectionMatrix());
 
 		for (int i{ 0 }; i < mImages.size(); ++i) {
 			mImages[i].bindImage(i);
 		}
 		// foreach plane
-		mTerrainShader.setVector3("planePos", camera.getPosition());
+		glm::vec3 cameraPos{ getClosestWorldPixelPos(camera.getPosition()) };
+		mTerrainShader.setVector3("planePos", {0, 0, 0});
 		mTerrainShader.setFloat("planeWorldWidth", mSmallChunkWidth);
 		for (int i{ 0 }; i < mArtisticParams.getMaxShellCount(); ++i) {
 			mTerrainShader.setInt("shellIndex", i);
 			mHighQualityPlane.useVertexArray();
 			glDrawElements(GL_TRIANGLES, mHighQualityPlane.getIndexCount(), GL_UNSIGNED_INT, 0);
 		}
+		renderUI();
 	}
 
 	glm::vec3 getClosestWorldPixelPos(const glm::vec3 pos) {
-		return pos;
+		float stepSize{ mImageWorldSizes[0] / mImagePixelDims[0] };
+		glm::vec3 stepSizesAway = pos / stepSize;
+		stepSizesAway = glm::vec3{ (int)stepSizesAway.x, (int)stepSizesAway.y, (int)stepSizesAway.z };
+		return stepSizesAway * stepSize;
 	}
 
 private:
@@ -188,6 +197,10 @@ private:
 		mTerrainParams.renderUI();
 
 		ImGui::Begin("Plane Chunking");
+		ImGui::DragInt("Width", &mSmallChunkWidth);
+		ImGui::DragInt("Low quality plane vertices", &mLowQualityPlaneVerticesPerEdge);
+		ImGui::DragInt("Med quality plane vertices", &mMedQualityPlaneVerticesPerEdge);
+		ImGui::DragInt("High quality plane vertices", &mHighQualityPlaneVerticesPerEdge);
 		ImGui::End();
 
 		ImGui::Begin("Terrain Images");

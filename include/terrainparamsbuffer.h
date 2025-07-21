@@ -13,7 +13,6 @@ struct TerrainParamsData {
 
 class TerrainParamsBuffer {
 public:
-	TerrainParamsBuffer(int octaveCount, float initialAmplitude, float amplitudeDecay, float spreadFactor);
 	TerrainParamsBuffer(const TerrainParamsData& data)
 		: mOctaveCount{ data.octaveCount }
 		, mInitialAmplitude{ data.initialAmplitude }

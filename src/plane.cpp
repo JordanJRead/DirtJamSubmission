@@ -2,6 +2,7 @@
 #include "glm/glm.hpp"
 #include "plane.h"
 #include "random.h"
+#include <iostream>
 
 Plane::Plane(int verticesPerEdge)
 	: mVerticesPerEdge{ verticesPerEdge }
@@ -13,10 +14,11 @@ Plane::Plane(int verticesPerEdge)
 
 	std::vector<float> vertices(vertexCount * floatsPerVertex);
 
-	double stepSize{ 1.0 / mVerticesPerEdge - 1 };
+	double stepSize{ 1.0 / (mVerticesPerEdge - 1) };
 	double currentXPos{ -0.5 };
 	double currentZPos{ -0.5 };
 	for (int vertexI{ 0 }; vertexI < vertexCount; ++vertexI) {
+		std::cout << currentXPos << "\n";
 		vertices[vertexI * floatsPerVertex + 0] = currentXPos;
 		vertices[vertexI * floatsPerVertex + 1] = currentZPos;
 
