@@ -16,14 +16,15 @@
 
 void TerrainParamsBuffer::renderUI() {
 	ImGui::Begin("Terrain Parameters");
-	ImGui::DragInt("Octave count", &mOctaveCount.mGUI, 0.1, 1, 10);
-	ImGui::DragFloat("Amplitude", &mInitialAmplitude.mGUI, 1, 0, 100);
-	ImGui::DragFloat("Amplitude decay", &mAmplitudeDecay.mGUI, 0.1, 0, 100);
-	ImGui::DragFloat("Spread factor", &mSpreadFactor.mGUI, 1, 0, 100);
+	ImGui::DragInt("Octave count", &mOctaveCount.mGUI, 0.1, 1, 30);
+	ImGui::DragFloat("Amplitude", &mInitialAmplitude.mGUI, 0.7, 0, 500);
+	ImGui::DragFloat("Amplitude decay", &mAmplitudeDecay.mGUI, 0.0005, 0, 100);
+	ImGui::DragFloat("Spread factor", &mSpreadFactor.mGUI, 0.001, 0, 100);
 	ImGui::End();
 }
 
-void TerrainParamsBuffer::updateGPU(bool force) {
+bool TerrainParamsBuffer::updateGPU(bool force) {
+	bool hasChanged{ false };
 	glBindBuffer(GL_UNIFORM_BUFFER, mBUF);
 
 	int offset{ 0 };
@@ -32,6 +33,7 @@ void TerrainParamsBuffer::updateGPU(bool force) {
 	if (mOctaveCount.hasDiff() || force) {
 		mOctaveCount.mShader = mOctaveCount.mGUI;
 		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mOctaveCount.mShader);
+		hasChanged = true;
 	}
 	offset += size;
 
@@ -39,6 +41,7 @@ void TerrainParamsBuffer::updateGPU(bool force) {
 	if (mInitialAmplitude.hasDiff() || force) {
 		mInitialAmplitude.mShader = mInitialAmplitude.mGUI;
 		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mInitialAmplitude.mShader);
+		hasChanged = true;
 	}
 	offset += size;
 
@@ -46,6 +49,7 @@ void TerrainParamsBuffer::updateGPU(bool force) {
 	if (mAmplitudeDecay.hasDiff() || force) {
 		mAmplitudeDecay.mShader = mAmplitudeDecay.mGUI;
 		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mAmplitudeDecay.mShader);
+		hasChanged = true;
 	}
 	offset += size;
 
@@ -53,6 +57,8 @@ void TerrainParamsBuffer::updateGPU(bool force) {
 	if (mSpreadFactor.hasDiff() || force) {
 		mSpreadFactor.mShader = mSpreadFactor.mGUI;
 		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mSpreadFactor.mShader);
+		hasChanged = true;
 	}
 	offset += size;
+	return hasChanged;
 }

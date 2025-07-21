@@ -84,7 +84,7 @@ public:
 	}
 
 	void render(const Camera& camera) {
-		mTerrainParams.updateGPU(false);
+		bool hasTerrainChanged{ mTerrainParams.updateGPU(false) };
 		mArtisticParams.updateGPU(false);
 		mTerrainShader.use();
 
@@ -124,7 +124,7 @@ public:
 				hasImageChanged = true;
 			}
 
-			if (hasImageChanged || true) {
+			if (hasImageChanged || hasTerrainChanged) {
 				mImages[i].updateTexture(mScreenQuad, mTerrainImageShader); // binds another shader
 			}
 		}

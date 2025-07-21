@@ -25,7 +25,7 @@ public:
 		updateGPU(true);
 	}
 	void renderUI();
-	void updateGPU(bool force);
+	bool updateGPU(bool force);
 
 private:
 	BUF mBUF;

@@ -29,9 +29,9 @@ ArtisticParamsBuffer::ArtisticParamsBuffer(float extrudePerShell, float maxFogDi
 
 void ArtisticParamsBuffer::renderUI() {
 	ImGui::Begin("Artistic Parameters");
-	ImGui::DragFloat("Extrusion per shell", &mExtrudePerShell.mGUI, 1, 0, 10);
+	ImGui::DragFloat("Extrusion per shell", &mExtrudePerShell.mGUI, 0.001, 0, 10);
 	ImGui::DragFloat("View distance", &mMaxFogDist.mGUI, 1, 1, 1000);
-	ImGui::DragFloat("Color dot cutoff", &mColorDotCutoff.mGUI, 0.01, 0, 1);
+	ImGui::DragFloat("Color dot cutoff", &mColorDotCutoff.mGUI, 0.005, 0, 1);
 	ImGui::DragFloat("Shell texel scale", &mShellTexelScale.mGUI, 1, 1, 1000);
 	ImGui::DragFloat("Shell cutoff loss rate", &mShellCutoffLossPerShell.mGUI, 0.01, 0, 1);
 	ImGui::DragFloat("Shell cutoff base", &mShellCutoffBase.mGUI, 0.01, 0, 1);
