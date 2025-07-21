@@ -45,7 +45,7 @@ void App::loop() {
 
 	bool wireModeGUI{ false };
 	bool displayGridGUI{ true };
-	int planeWidthGUI{ 500 };
+	int planeWidthGUI{ 50 };
 	int planeVertexDensityGUI{ 10 };
 	int labelGUI{ 0 };
 	float maxFogDistGUI{ 25 };
