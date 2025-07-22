@@ -122,7 +122,7 @@ void main() {
 
 		vec3 preFogColor = (diffuse + ambient) * albedo;
 		vec3 postFogColor = visibility * preFogColor + (1 - visibility) * vec3(0.5, 0.5, 0.5);
-		FragColor = vec4(postFogColor, 1);
+		FragColor = vec4(preFogColor, 1);
 	}
 	else {
 		if (!shallowEnough || randNum < cutoffLossPerShell * shellIndex + cutoffBase)
@@ -137,6 +137,6 @@ void main() {
 
 		vec3 preFogColor = (diffuse + ambient) * albedo;
 		vec3 postFogColor = visibility * preFogColor + (1 - visibility) * vec3(0.5, 0.5, 0.5);
-		FragColor = vec4(postFogColor, 1);
+		FragColor = vec4(preFogColor, 1);
 	}
 }

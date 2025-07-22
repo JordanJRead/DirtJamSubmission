@@ -18,7 +18,6 @@ Plane::Plane(int verticesPerEdge)
 	double currentXPos{ -0.5 };
 	double currentZPos{ -0.5 };
 	for (int vertexI{ 0 }; vertexI < vertexCount; ++vertexI) {
-		std::cout << currentXPos << "\n";
 		vertices[vertexI * floatsPerVertex + 0] = currentXPos;
 		vertices[vertexI * floatsPerVertex + 1] = currentZPos;
 

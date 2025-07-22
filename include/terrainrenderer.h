@@ -49,9 +49,9 @@ public:
 		, mImageWorldSizes{ imageWorldSizes }
 
 		, mImages{ {
-			{mImagePixelDims[0], mImageWorldSizes[0], screenWidth, screenHeight, getClosestWorldPixelPos(cameraPos)},
-			{mImagePixelDims[1], mImageWorldSizes[1], screenWidth, screenHeight, getClosestWorldPixelPos(cameraPos)},
-			{mImagePixelDims[2], mImageWorldSizes[2], screenWidth, screenHeight, getClosestWorldPixelPos(cameraPos)}
+			{mImagePixelDims[0], mImageWorldSizes[0], screenWidth, screenHeight, getClosestWorldPixelPos(cameraPos, 0)},
+			{mImagePixelDims[1], mImageWorldSizes[1], screenWidth, screenHeight, getClosestWorldPixelPos(cameraPos, 1)},
+			{mImagePixelDims[2], mImageWorldSizes[2], screenWidth, screenHeight, getClosestWorldPixelPos(cameraPos, 2)}
 		} }
 	{
 		std::vector<float> vertexData{
@@ -133,26 +133,52 @@ public:
 
 		mTerrainShader.use();
 		mTerrainShader.setMatrix4("view", camera.getViewMatrix());
-		std::cout << camera.getViewMatrix()[3].y << "\n";
 		mTerrainShader.setMatrix4("proj", camera.getProjectionMatrix());
 
 		for (int i{ 0 }; i < mImages.size(); ++i) {
 			mImages[i].bindImage(i);
 		}
-		// foreach plane
-		glm::vec3 cameraPos{ getClosestWorldPixelPos(camera.getPosition()) };
-		mTerrainShader.setVector3("planePos", {cameraPos.x, 0, cameraPos.z});
-		mTerrainShader.setFloat("planeWorldWidth", mSmallChunkWidth);
-		for (int i{ 0 }; i < mArtisticParams.getMaxShellCount(); ++i) {
-			mTerrainShader.setInt("shellIndex", i);
-			mHighQualityPlane.useVertexArray();
-			glDrawElements(GL_TRIANGLES, mHighQualityPlane.getIndexCount(), GL_UNSIGNED_INT, 0);
+
+ 		for (int x{ -mSmallChunkCount / 2 }; x <= mSmallChunkCount / 2; ++x) {
+			for (int z{ -mSmallChunkCount / 2 }; z <= mSmallChunkCount / 2; ++z) {
+
+				glm::vec3 smoothChunkPos{ camera.getPosition() - glm::vec3(x * mSmallChunkWidth, 0, z * mSmallChunkWidth) };
+				float chunkDist{ glm::length(smoothChunkPos - camera.getPosition()) };
+				Plane* currPlane;
+				if (chunkDist > 500) {
+					currPlane = &mLowQualityPlane;
+				}
+				else if (chunkDist > 100) {
+					currPlane = &mMedQualityPlane;
+				}
+				else {
+					currPlane = &mHighQualityPlane;
+				}
+
+				glm::vec3 chunkPos{ getClosestWorldVertexPos(camera.getPosition(), *currPlane) - glm::vec3(x * mSmallChunkWidth, 0, z * mSmallChunkWidth)};
+				mTerrainShader.setVector3("planePos", { chunkPos.x, 0, chunkPos.z });
+				mTerrainShader.setFloat("planeWorldWidth", mSmallChunkWidth);
+
+				currPlane->useVertexArray();
+				for (int i{ 0 }; i < mArtisticParams.getMaxShellCount(); ++i) {
+					mTerrainShader.setInt("shellIndex", i);
+					glDrawElements(GL_TRIANGLES, currPlane->getIndexCount(), GL_UNSIGNED_INT, 0);
+				}
+			}
 		}
+
 		renderUI();
 	}
 
-	glm::vec3 getClosestWorldPixelPos(const glm::vec3 pos) {
-		float stepSize{ mImageWorldSizes[0] / mImagePixelDims[0] };
+	glm::vec3 getClosestWorldPixelPos(const glm::vec3 pos, int imageIndex) {
+		float stepSize{ mImageWorldSizes[imageIndex] / mImagePixelDims[imageIndex] * 22 };
+		glm::vec3 stepSizesAway = pos / stepSize;
+		stepSizesAway = glm::vec3{ (int)stepSizesAway.x, (int)stepSizesAway.y, (int)stepSizesAway.z };
+		return stepSizesAway * stepSize;
+	}
+
+	glm::vec3 getClosestWorldVertexPos(const glm::vec3 pos, const Plane& plane) {
+		float stepSize{ plane.getStepSize() * mSmallChunkWidth };
 		glm::vec3 stepSizesAway = pos / stepSize;
 		stepSizesAway = glm::vec3{ (int)stepSizesAway.x, (int)stepSizesAway.y, (int)stepSizesAway.z };
 		return stepSizesAway * stepSize;
@@ -199,10 +225,11 @@ private:
 		mTerrainParams.renderUI();
 
 		ImGui::Begin("Plane Chunking");
-		ImGui::DragInt("Width", &mSmallChunkWidth);
-		ImGui::DragInt("Low quality plane vertices", &mLowQualityPlaneVerticesPerEdge);
-		ImGui::DragInt("Med quality plane vertices", &mMedQualityPlaneVerticesPerEdge);
-		ImGui::DragInt("High quality plane vertices", &mHighQualityPlaneVerticesPerEdge);
+		ImGui::DragInt("Width", &mSmallChunkWidth, 1, 1, 100);
+		ImGui::DragInt("Count", &mSmallChunkCount, 1, 1, 100);
+		ImGui::DragInt("Low quality plane vertices", &mLowQualityPlaneVerticesPerEdge, 1, 2, 1000);
+		ImGui::DragInt("Med quality plane vertices", &mMedQualityPlaneVerticesPerEdge, 1, 2, 1000);
+		ImGui::DragInt("High quality plane vertices", &mHighQualityPlaneVerticesPerEdge, 1, 2, 1000);
 		ImGui::End();
 
 		ImGui::Begin("Terrain Images");

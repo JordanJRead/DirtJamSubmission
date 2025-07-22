@@ -10,8 +10,9 @@ public:
 	Plane(int verticesPerEdge);
 	void rebuild(int vertexLengthCount);
 	void useVertexArray() { mVertexArray.use(); };
-	int getIndexCount() { return mIndexCount; }
-	int getVerticesPerEdge() { return mVerticesPerEdge; }
+	int getIndexCount() const { return mIndexCount; }
+	int getVerticesPerEdge() const { return mVerticesPerEdge; }
+	float getStepSize() const { return 1.0 / (mVerticesPerEdge - 1); }
 
 private:
 	VertexArray mVertexArray;
