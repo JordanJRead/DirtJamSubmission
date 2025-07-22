@@ -2,7 +2,7 @@
 #include "glad/glad.h"
 #include <imgui.h>
 
-ArtisticParamsBuffer::ArtisticParamsBuffer(float extrudePerShell, float maxFogDist, float colorDotCutoff, float shellTexelScale, float shellCutoffLossPerShell, float shellCutoffBase, int maxShellCount)
+ArtisticParamsBuffer::ArtisticParamsBuffer(float extrudePerShell, float maxFogDist, float colorDotCutoff, float shellTexelScale, float shellCutoffLossPerShell, float shellCutoffBase, int maxShellCount, float terrainScale)
 	: mExtrudePerShell{ extrudePerShell }
 	, mMaxFogDist{ maxFogDist }
 	, mColorDotCutoff{ colorDotCutoff }
@@ -10,9 +10,10 @@ ArtisticParamsBuffer::ArtisticParamsBuffer(float extrudePerShell, float maxFogDi
 	, mShellCutoffLossPerShell{ shellCutoffLossPerShell }
 	, mShellCutoffBase{ shellCutoffBase }
 	, mMaxShellCount{ maxShellCount }
+	, mTerrainScale{ terrainScale }
 {
 	glBindBuffer(GL_UNIFORM_BUFFER, mBUF);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(int) + 6 * sizeof(float), nullptr, GL_STATIC_DRAW);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(int) + 7 * sizeof(float), nullptr, GL_STATIC_DRAW);
 	glBindBufferBase(GL_UNIFORM_BUFFER, 1, mBUF);
 
 	updateGPU(true);
@@ -36,6 +37,7 @@ void ArtisticParamsBuffer::renderUI() {
 	ImGui::DragFloat("Shell cutoff loss rate", &mShellCutoffLossPerShell.mGUI, 0.01, 0, 1);
 	ImGui::DragFloat("Shell cutoff base", &mShellCutoffBase.mGUI, 0.01, 0, 1);
 	ImGui::DragInt("Shell count (counting base)", &mMaxShellCount.mGUI, 0.1, 1, 10);
+	ImGui::DragFloat("Terrain scale", &mTerrainScale.mGUI);
 	ImGui::End();
 }
 
@@ -90,6 +92,13 @@ void ArtisticParamsBuffer::updateGPU(bool force) {
 	if (mMaxShellCount.hasDiff() || force) {
 		mMaxShellCount.mShader = mMaxShellCount.mGUI;
 		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mMaxShellCount.mShader);
+	}
+	offset += size;
+
+	size = sizeof(float);
+	if (mTerrainScale.hasDiff() || force) {
+		mTerrainScale.mShader = mTerrainScale.mGUI;
+		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mTerrainScale.mShader);
 	}
 	offset += size;
 }

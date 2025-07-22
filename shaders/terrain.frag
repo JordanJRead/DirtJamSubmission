@@ -21,6 +21,7 @@ layout(std140, binding = 1) uniform ArtisticParams {
 	uniform float cutoffLossPerShell;
 	uniform float cutoffBase;
 	uniform int maxShellCount;
+	uniform float terrainScale;
 };
 
 // Per plane
@@ -28,11 +29,11 @@ uniform int shellIndex;
 
 vec3 getTerrainInfo(vec2 worldPos) {
 	for (int i = 0; i < 3; ++i) {
-		vec2 sampleCoord = ((worldPos - imagePositions[i]) / imageScales[i] / 22) + vec2(0.5);
+		vec2 sampleCoord = ((worldPos - imagePositions[i]) / imageScales[i] / terrainScale) + vec2(0.5);
 		
 		if (!(sampleCoord.x > 1 || sampleCoord.x < 0 || sampleCoord.y > 1 || sampleCoord.y < 0)) {
 			vec3 terrainInfo = texture(images[i], sampleCoord).rgb;
-			terrainInfo.yz /= imageScales[i] * 22;
+			terrainInfo.yz /= imageScales[i] * terrainScale;
 			return terrainInfo;
 		}
 	}
