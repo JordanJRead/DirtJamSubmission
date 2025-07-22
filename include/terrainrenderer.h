@@ -25,7 +25,7 @@ public:
 	TerrainRenderer(int screenWidth, int screenHeight, const glm::vec3& cameraPos,
 		int smallChunkWidth, int smallChunkCount, int largeChunkRingCount, const ArtisticParamsData& artistParams, const TerrainParamsData& terrainParams,
 		std::array<int, ImageCount> imagePixelDims, std::array<float, ImageCount> imageWorldSizes, std::array<glm::vec2, ImageCount> imageWorldPositions,
-		int lowQualityPlaneVertexDensity, int medQualityPlaneVertexDensity, int highQualityPlaneVertexDensity)
+		int lowQualityPlaneVerticesPerEdge, int medQualityPlaneVerticesPerEdgeScale, int highQualityPlaneVerticesPerEdgeScale)
 		: mSmallChunkWidth{ smallChunkWidth }
 		, mSmallChunkCount{ smallChunkCount }
 		, mLargeChunkRingCount{ largeChunkRingCount }
@@ -33,13 +33,13 @@ public:
 		, mArtisticParams{ artistParams }
 		, mTerrainParams{ terrainParams }
 
-		, mLowQualityPlaneVerticesPerEdge{ lowQualityPlaneVertexDensity }
-		, mMedQualityPlaneVerticesPerEdge{ medQualityPlaneVertexDensity }
-		, mHighQualityPlaneVerticesPerEdge{ highQualityPlaneVertexDensity }
+		, mLowQualityPlaneVerticesPerEdge{ lowQualityPlaneVerticesPerEdge }
+		, mMedQualityPlaneVerticesPerEdgeScale{ medQualityPlaneVerticesPerEdgeScale }
+		, mHighQualityPlaneVerticesPerEdgeScale{ highQualityPlaneVerticesPerEdgeScale }
 
 		, mLowQualityPlane{ mLowQualityPlaneVerticesPerEdge }
-		, mMedQualityPlane{ mMedQualityPlaneVerticesPerEdge }
-		, mHighQualityPlane{ mHighQualityPlaneVerticesPerEdge }
+		, mMedQualityPlane{ mMedQualityPlaneVerticesPerEdgeScale }
+		, mHighQualityPlane{ mHighQualityPlaneVerticesPerEdgeScale }
 
 		, mTerrainImageShader{ "shaders/terrainimage.vert", "shaders/terrainimage.frag" }
 		, mTerrainShader{ "shaders/terrain.vert", "shaders/terrain.frag" }
@@ -93,11 +93,11 @@ public:
 		if (mLowQualityPlaneVerticesPerEdge != mLowQualityPlane.getVerticesPerEdge()) {
 			mLowQualityPlane.rebuild(mLowQualityPlaneVerticesPerEdge);
 		}
-		if (mMedQualityPlaneVerticesPerEdge != mMedQualityPlane.getVerticesPerEdge()) {
-			mMedQualityPlane.rebuild(mMedQualityPlaneVerticesPerEdge);
+		if (mMedQualityPlaneVerticesPerEdgeScale * mLowQualityPlaneVerticesPerEdge != mMedQualityPlane.getVerticesPerEdge()) {
+			mMedQualityPlane.rebuild(mMedQualityPlaneVerticesPerEdgeScale * mLowQualityPlaneVerticesPerEdge);
 		}
-		if (mHighQualityPlaneVerticesPerEdge != mHighQualityPlane.getVerticesPerEdge()) {
-			mHighQualityPlane.rebuild(mHighQualityPlaneVerticesPerEdge);
+		if (mHighQualityPlaneVerticesPerEdgeScale * mLowQualityPlaneVerticesPerEdge != mHighQualityPlane.getVerticesPerEdge()) {
+			mHighQualityPlane.rebuild(mHighQualityPlaneVerticesPerEdgeScale * mLowQualityPlaneVerticesPerEdge);
 		}
 
 		// Update images
@@ -155,7 +155,7 @@ public:
 					currPlane = &mHighQualityPlane;
 				}
 
-				glm::vec3 chunkPos{ getClosestWorldVertexPos(camera.getPosition(), *currPlane) - glm::vec3(x * mSmallChunkWidth, 0, z * mSmallChunkWidth)};
+				glm::vec3 chunkPos{ getClosestWorldVertexPos(camera.getPosition()) - glm::vec3(x * mSmallChunkWidth, 0, z * mSmallChunkWidth)};
 				mTerrainShader.setVector3("planePos", { chunkPos.x, 0, chunkPos.z });
 				mTerrainShader.setFloat("planeWorldWidth", mSmallChunkWidth);
 
@@ -177,8 +177,8 @@ public:
 		return stepSizesAway * stepSize;
 	}
 
-	glm::vec3 getClosestWorldVertexPos(const glm::vec3 pos, const Plane& plane) {
-		float stepSize{ plane.getStepSize() * mSmallChunkWidth };
+	glm::vec3 getClosestWorldVertexPos(const glm::vec3 pos) {
+		float stepSize{ mLowQualityPlane.getStepSize() * mSmallChunkWidth };
 		glm::vec3 stepSizesAway = pos / stepSize;
 		stepSizesAway = glm::vec3{ (int)stepSizesAway.x, (int)stepSizesAway.y, (int)stepSizesAway.z };
 		return stepSizesAway * stepSize;
@@ -203,8 +203,8 @@ private:
 	std::array<TerrainImageGenerator, ImageCount> mImages;
 
 	int mLowQualityPlaneVerticesPerEdge;
-	int mMedQualityPlaneVerticesPerEdge;
-	int mHighQualityPlaneVerticesPerEdge;
+	int mMedQualityPlaneVerticesPerEdgeScale;
+	int mHighQualityPlaneVerticesPerEdgeScale;
 
 	Shader mTerrainImageShader;
 	Shader mTerrainShader;
@@ -228,8 +228,8 @@ private:
 		ImGui::DragInt("Width", &mSmallChunkWidth, 1, 1, 100);
 		ImGui::DragInt("Count", &mSmallChunkCount, 1, 1, 100);
 		ImGui::DragInt("Low quality plane vertices", &mLowQualityPlaneVerticesPerEdge, 1, 2, 1000);
-		ImGui::DragInt("Med quality plane vertices", &mMedQualityPlaneVerticesPerEdge, 1, 2, 1000);
-		ImGui::DragInt("High quality plane vertices", &mHighQualityPlaneVerticesPerEdge, 1, 2, 1000);
+		ImGui::DragInt("Med quality plane quality scale", &mMedQualityPlaneVerticesPerEdgeScale, 1, 2, 1000);
+		ImGui::DragInt("High quality plane quality scale", &mHighQualityPlaneVerticesPerEdgeScale, 1, 2, 1000);
 		ImGui::End();
 
 		ImGui::Begin("Terrain Images");
