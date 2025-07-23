@@ -7,19 +7,16 @@
 
 class Plane {
 public:
-	Plane(int width, int vertexDensity, const glm::vec3& cameraPosition, float latticeSize);
-	void rebuild(int width, int vertexDensity);
-	void updatePosition(const glm::vec3& cameraPosition, float latticeSize);
-	void useVAO() { mVertexArray.use(); };
-	int getIndexCount() { return mIndexCount; }
-	int getWidth() { return mWidth; }
-	int getVertexDensity() { return mVertexDensity; }
+	Plane(int verticesPerEdge);
+	void rebuild(int vertexLengthCount);
+	void useVertexArray() { mVertexArray.use(); };
+	int getIndexCount() const { return mIndexCount; }
+	int getVerticesPerEdge() const { return mVerticesPerEdge; }
+	float getStepSize() const { return 1.0 / (mVerticesPerEdge - 1); }
 
 private:
 	VertexArray mVertexArray;
-	int mWidth;
-	int mVertexDensity;
-	glm::vec3 mPosition;
+	int mVerticesPerEdge;
 	int mIndexCount;
 };
 

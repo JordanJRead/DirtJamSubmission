@@ -3,47 +3,52 @@
 
 layout(location = 0) in vec2 vPos;
 
-uniform mat4 view;
-uniform mat4 proj;
-uniform float planeWorldWidth;
-uniform float samplingScale;
-uniform float samplingScaleBad;
-
-layout(std140, binding = 0) uniform terrainParams {
-	uniform int octaveCount;
-	uniform float initialAmplitude;
-	uniform float amplitudeDecay;
-	uniform float spreadFactor;
-};
-
-uniform sampler2D terrainImage;
-uniform sampler2D terrainImageBad;
-uniform int shellIndex;
-uniform float extrudePerShell;
-
 out vec2 flatWorldPos;
 out vec3 viewPos;
 
-vec3 getTerrainInfo(vec2 worldPos) {
-	vec2 sampleCoord = (worldPos / samplingScale) + vec2(0.5);
-	vec3 terrainInfo = texture(terrainImage, sampleCoord).xyz;
-	bool badTexture = false;
+// Per app
+uniform int imageCount;
+uniform sampler2D images[3];
 
-	if (sampleCoord.x > 1 || sampleCoord.x < 0 || sampleCoord.y > 1 || sampleCoord.y < 0) {
-		badTexture = true;
-		sampleCoord = (worldPos / samplingScaleBad) + vec2(0.5);
-		terrainInfo = texture(terrainImageBad, sampleCoord).xyz;
-		if (sampleCoord.x > 1 || sampleCoord.x < 0 || sampleCoord.y > 1 || sampleCoord.y < 0) {
-			terrainInfo = vec3(-initialAmplitude, 0, 0);
+// Per whenever they get changed
+uniform float imageScales[3];
+uniform vec2 imagePositions[3];
+
+layout(std140, binding = 1) uniform ArtisticParams {
+	uniform float extrudePerShell;
+	uniform float maxFogDist;
+	uniform float colorDotCutoff;
+	uniform float shellTexelScale;
+	uniform float cutoffLossPerShell;
+	uniform float cutoffBase;
+	uniform int maxShellCount;
+	uniform float terrainScale;
+};
+
+// Per frame
+uniform mat4 view;
+uniform mat4 proj;
+
+// Per plane
+uniform float planeWorldWidth;
+uniform int shellIndex;
+uniform vec3 planePos;
+
+vec3 getTerrainInfo(vec2 worldPos) {
+	for (int i = 0; i < 3; ++i) {
+		vec2 sampleCoord = ((worldPos / terrainScale - imagePositions[i]) / imageScales[i]) + vec2(0.5);
+		
+		if (!(sampleCoord.x > 1 || sampleCoord.x < 0 || sampleCoord.y > 1 || sampleCoord.y < 0)) {
+			vec3 terrainInfo = texture(images[i], sampleCoord).rgb;
+			terrainInfo.yz /= imageScales[i] * terrainScale;
+			return terrainInfo;
 		}
 	}
-
-	terrainInfo.yz /= badTexture ? samplingScaleBad : samplingScale;
-	return terrainInfo;
+	return vec3(0, 0, 0);
 }
 
 void main() {
-	vec4 worldPos = vec4(vPos.x * planeWorldWidth, 0, vPos.y * planeWorldWidth, 1);
+	vec4 worldPos = vec4(vPos.x * planeWorldWidth + planePos.x, planePos.y, vPos.y * planeWorldWidth + planePos.z, 1);
 	flatWorldPos = worldPos.xz;
 	vec3 terrainInfo = getTerrainInfo(flatWorldPos);
 	vec3 normal = normalize(vec3(-terrainInfo.y, 1, -terrainInfo.z));

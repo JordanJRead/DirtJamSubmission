@@ -5,6 +5,7 @@
 #include "shader.h"
 #include "GLFW/glfw3.h"
 #include "imgui_impl_glfw.h"
+#include "terrainrenderer.h"
 
 class App {
 public:
@@ -15,8 +16,7 @@ private:
 	int mScreenWidth;
 	int mScreenHeight;
 	Camera mCamera;
-	Shader mTerrainShader;
-	Shader mGridShader;
+	TerrainRenderer mTerrainRenderer;
 	GLFWwindow* mWindow;
 	bool mIsCursorHidden{ true };
 
