@@ -23,12 +23,11 @@ constexpr int ImageCount{ 3 };
 class TerrainRenderer {
 public:
 	TerrainRenderer(int screenWidth, int screenHeight, const glm::vec3& cameraPos,
-		int smallChunkWidth, int smallChunkCount, int largeChunkRingCount, const ArtisticParamsData& artistParams, const TerrainParamsData& terrainParams,
+		int chunkWidth, int chunkCount, const ArtisticParamsData& artistParams, const TerrainParamsData& terrainParams,
 		std::array<int, ImageCount> imagePixelDims, std::array<float, ImageCount> imageWorldSizes, std::array<glm::vec2, ImageCount> imageWorldPositions,
-		int lowQualityPlaneVerticesPerEdge, int medQualityPlaneVerticesPerEdgeScale, int highQualityPlaneVerticesPerEdgeScale)
-		: mSmallChunkWidth{ smallChunkWidth }
-		, mSmallChunkCount{ smallChunkCount }
-		, mLargeChunkRingCount{ largeChunkRingCount }
+		int lowQualityPlaneVerticesPerEdge, int medQualityPlaneVerticesPerEdgeScale, int highQualityPlaneVerticesPerEdgeScale, float highMedDist, float medLowDist)
+		: mChunkWidth{ chunkWidth }
+		, mChunkCount{ chunkCount }
 		
 		, mArtisticParams{ artistParams }
 		, mTerrainParams{ terrainParams }
@@ -47,6 +46,9 @@ public:
 		, mImageWorldPositions{ imageWorldPositions }
 		, mImagePixelDims{ imagePixelDims }
 		, mImageWorldSizes{ imageWorldSizes }
+
+		, mHighMedDist{ highMedDist }
+		, mMedLowDist{ medLowDist }
 
 		, mImages{ {
 			{mImagePixelDims[0], mImageWorldSizes[0], screenWidth, screenHeight, getClosestWorldPixelPos(cameraPos, 0)},
@@ -103,23 +105,32 @@ public:
 		// Update images
 		for (int i{ 0 }; i < ImageCount; ++i) {
 
-			glm::vec3 pixelPosition{ getClosestWorldPixelPos(camera.getPosition() / mArtisticParams.getTerrainScale(), i)};
-			mImageWorldPositions[i] = glm::vec2(pixelPosition.x, pixelPosition.z);
+			// Move images along with the player
+			glm::vec2 scaledCameraPos{ glm::vec2(camera.getPosition().x, camera.getPosition().z) / mArtisticParams.getTerrainScale() };
+			double cameraDistFromImageCenter{ glm::length(scaledCameraPos - mImageWorldPositions[i]) };
+			if (cameraDistFromImageCenter * 2 > 0.5 * mImageWorldSizes[i]) { // If near edge of image, update image
+				glm::vec3 pixelPosition{ getClosestWorldPixelPos(camera.getPosition() / mArtisticParams.getTerrainScale(), i)};
+				mImageWorldPositions[i] = glm::vec2(pixelPosition.x, pixelPosition.z);
+			}
 
+			// Recalculate image checks
 			std::string indexString{ std::to_string(i) };
 			bool hasImageChanged{ false };
 
+			// GUI
 			if (mImages[i].getWorldSize() != mImageWorldSizes[i]) {
 				mImages[i].setWorldSize(mImageWorldSizes[i]);
 				mTerrainShader.setFloat("imageScales[" + indexString + "]", mImageWorldSizes[i]);
 				hasImageChanged = true;
 			}
 
+			// GUI
 			if (mImages[i].getPixelDim() != mImagePixelDims[i]) {
 				mImages[i].updatePixelDim(mImagePixelDims[i]);
 				hasImageChanged = true;
 			}
 
+			// The above position calculation
 			if (mImages[i].getWorldPos() != mImageWorldPositions[i]) { // Updated automatically
 				mImages[i].setWorldPos(mImageWorldPositions[i]);
 				mTerrainShader.setVector2("imagePositions[" + indexString + "]", mImageWorldPositions[i]);
@@ -140,25 +151,26 @@ public:
 			mImages[i].bindImage(i);
 		}
 
- 		for (int x{ -mSmallChunkCount / 2 }; x <= mSmallChunkCount / 2; ++x) {
-			for (int z{ -mSmallChunkCount / 2 }; z <= mSmallChunkCount / 2; ++z) {
+		// For each chunk
+ 		for (int x{ -mChunkCount / 2 }; x <= mChunkCount / 2; ++x) {
+			for (int z{ -mChunkCount / 2 }; z <= mChunkCount / 2; ++z) {
 
-				glm::vec3 smoothChunkPos{ camera.getPosition() - glm::vec3(x * mSmallChunkWidth, 0, z * mSmallChunkWidth) };
+				glm::vec3 smoothChunkPos{ camera.getPosition() - glm::vec3(x * mChunkWidth, 0, z * mChunkWidth) };
 				float chunkDist{ glm::length(smoothChunkPos - camera.getPosition()) };
 				Plane* currPlane;
-				if (chunkDist > 500) {
+				if (chunkDist > mMedLowDist) {
 					currPlane = &mLowQualityPlane;
 				}
-				else if (chunkDist > 100) {
+				else if (chunkDist > mHighMedDist) {
 					currPlane = &mMedQualityPlane;
 				}
 				else {
 					currPlane = &mHighQualityPlane;
 				}
 
-				glm::vec3 chunkPos{ getClosestWorldVertexPos(camera.getPosition()) - glm::vec3(x * mSmallChunkWidth, 0, z * mSmallChunkWidth)};
+				glm::vec3 chunkPos{ getClosestWorldVertexPos(camera.getPosition()) - glm::vec3(x * mChunkWidth, 0, z * mChunkWidth)};
 				mTerrainShader.setVector3("planePos", { chunkPos.x, 0, chunkPos.z });
-				mTerrainShader.setFloat("planeWorldWidth", mSmallChunkWidth);
+				mTerrainShader.setFloat("planeWorldWidth", mChunkWidth);
 
 				currPlane->useVertexArray();
 				for (int i{ 0 }; i < mArtisticParams.getMaxShellCount(); ++i) {
@@ -179,21 +191,18 @@ public:
 	}
 
 	glm::vec3 getClosestWorldVertexPos(const glm::vec3 pos) {
-		float stepSize{ mLowQualityPlane.getStepSize() * mSmallChunkWidth };
+		float stepSize{ mLowQualityPlane.getStepSize() * mChunkWidth };
 		glm::vec3 stepSizesAway = pos / stepSize;
 		stepSizesAway = glm::vec3{ (int)stepSizesAway.x, (int)stepSizesAway.y, (int)stepSizesAway.z };
 		return stepSizesAway * stepSize;
 	}
 
 private:
-	// The chunk collection consists of a square of smallChunkCount * smallChunkCount chunks, each having a width of smallChunkWidth
-	// Then, there will 8 chunks place around this square, each one having a width of smallChunkCount * smallChunkWidth (the width of this small chunk square)
-	// This is repeated with increasingly sized large chunks (3x each time) for largeChunkRingCount times
+	// The chunk collection consists of a square of chunkCount * chunkCount chunks, each having a width of chunkWidth
 
-	// The small chunks will go from high to low quality, while the far chunks will all be low quality?
-	int mSmallChunkWidth;
-	int mSmallChunkCount;
-	int mLargeChunkRingCount;
+	// The chunks will go from high to low quality, while the far chunks will all be low quality?
+	int mChunkWidth;
+	int mChunkCount;
 
 	ArtisticParamsBuffer mArtisticParams;
 	TerrainParamsBuffer mTerrainParams;
@@ -214,6 +223,9 @@ private:
 	Plane mMedQualityPlane;
 	Plane mHighQualityPlane;
 
+	float mHighMedDist;
+	float mMedLowDist;
+
 	VertexArray mScreenQuad;
 
 	void renderUI(double displayDeltaTime) {
@@ -230,11 +242,13 @@ private:
 		mTerrainParams.renderUI();
 
 		ImGui::Begin("Plane Chunking");
-		ImGui::DragInt("Width", &mSmallChunkWidth, 1, 1, 100);
-		ImGui::DragInt("Count", &mSmallChunkCount, 1, 1, 100);
+		ImGui::DragInt("Width", &mChunkWidth, 1, 1, 100);
+		ImGui::DragInt("Count", &mChunkCount, 1, 1, 100);
 		ImGui::DragInt("Low quality plane vertices", &mLowQualityPlaneVerticesPerEdge, 1, 2, 1000);
 		ImGui::DragInt("Med quality plane quality scale", &mMedQualityPlaneVerticesPerEdgeScale, 1, 2, 1000);
 		ImGui::DragInt("High quality plane quality scale", &mHighQualityPlaneVerticesPerEdgeScale, 1, 2, 1000);
+		ImGui::DragFloat("First vertex LOD dist", &mHighMedDist, 1, 1, 1000);
+		ImGui::DragFloat("Second vertex LOD dist", &mMedLowDist, 1, 1, 1000);
 		ImGui::End();
 
 		ImGui::Begin("Terrain Images");
