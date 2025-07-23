@@ -36,7 +36,7 @@ uniform vec3 planePos;
 
 vec3 getTerrainInfo(vec2 worldPos) {
 	for (int i = 0; i < 3; ++i) {
-		vec2 sampleCoord = ((worldPos - imagePositions[i]) / imageScales[i] / terrainScale) + vec2(0.5);
+		vec2 sampleCoord = ((worldPos / terrainScale - imagePositions[i]) / imageScales[i]) + vec2(0.5);
 		
 		if (!(sampleCoord.x > 1 || sampleCoord.x < 0 || sampleCoord.y > 1 || sampleCoord.y < 0)) {
 			vec3 terrainInfo = texture(images[i], sampleCoord).rgb;

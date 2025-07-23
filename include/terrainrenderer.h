@@ -84,7 +84,7 @@ public:
 		}
 	}
 
-	void render(const Camera& camera) {
+	void render(const Camera& camera, double displayDeltaTime) {
 		bool hasTerrainChanged{ mTerrainParams.updateGPU(false) };
 		mArtisticParams.updateGPU(false);
 		mTerrainShader.use();
@@ -103,7 +103,8 @@ public:
 		// Update images
 		for (int i{ 0 }; i < ImageCount; ++i) {
 
-			// TODO find out if the images should move, and to where
+			glm::vec3 pixelPosition{ getClosestWorldPixelPos(camera.getPosition() / mArtisticParams.getTerrainScale(), i)};
+			mImageWorldPositions[i] = glm::vec2(pixelPosition.x, pixelPosition.z);
 
 			std::string indexString{ std::to_string(i) };
 			bool hasImageChanged{ false };
@@ -167,11 +168,11 @@ public:
 			}
 		}
 
-		renderUI();
+		renderUI(displayDeltaTime);
 	}
 
 	glm::vec3 getClosestWorldPixelPos(const glm::vec3 pos, int imageIndex) {
-		float stepSize{ mImageWorldSizes[imageIndex] / mImagePixelDims[imageIndex] * 22 };
+		float stepSize{ mImageWorldSizes[imageIndex] / mImagePixelDims[imageIndex] * mArtisticParams.getTerrainScale() };
 		glm::vec3 stepSizesAway = pos / stepSize;
 		stepSizesAway = glm::vec3{ (int)stepSizesAway.x, (int)stepSizesAway.y, (int)stepSizesAway.z };
 		return stepSizesAway * stepSize;
@@ -215,11 +216,15 @@ private:
 
 	VertexArray mScreenQuad;
 
-	void renderUI() {
+	void renderUI(double displayDeltaTime) {
 
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
+
+		ImGui::Begin("FPS");
+		ImGui::LabelText(std::to_string(1 / displayDeltaTime).c_str(), "");
+		ImGui::End();
 
 		mArtisticParams.renderUI();
 		mTerrainParams.renderUI();
