@@ -25,7 +25,7 @@ public:
 	TerrainRenderer(int screenWidth, int screenHeight, const glm::vec3& cameraPos,
 		int chunkWidth, int chunkCount, const ArtisticParamsData& artistParams, const TerrainParamsData& terrainParams,
 		std::array<int, ImageCount> imagePixelDims, std::array<float, ImageCount> imageWorldSizes, std::array<glm::vec2, ImageCount> imageWorldPositions,
-		int lowQualityPlaneVerticesPerEdge, int medQualityPlaneVerticesPerEdgeScale, int highQualityPlaneVerticesPerEdgeScale, float highMedDist, float medLowDist)
+		int lowQualityPlaneVerticesPerEdge, int highQualityPlaneVerticesPerEdgeScale, float vertexQualityDropoffDistance)
 		: mChunkWidth{ chunkWidth }
 		, mChunkCount{ chunkCount }
 		
@@ -33,11 +33,9 @@ public:
 		, mTerrainParams{ terrainParams }
 
 		, mLowQualityPlaneVerticesPerEdge{ lowQualityPlaneVerticesPerEdge }
-		, mMedQualityPlaneVerticesPerEdgeScale{ medQualityPlaneVerticesPerEdgeScale }
 		, mHighQualityPlaneVerticesPerEdgeScale{ highQualityPlaneVerticesPerEdgeScale }
 
 		, mLowQualityPlane{ mLowQualityPlaneVerticesPerEdge }
-		, mMedQualityPlane{ mMedQualityPlaneVerticesPerEdgeScale }
 		, mHighQualityPlane{ mHighQualityPlaneVerticesPerEdgeScale }
 
 		, mTerrainImageShader{ "shaders/terrainimage.vert", "shaders/terrainimage.frag" }
@@ -47,8 +45,7 @@ public:
 		, mImagePixelDims{ imagePixelDims }
 		, mImageWorldSizes{ imageWorldSizes }
 
-		, mHighMedDist{ highMedDist }
-		, mMedLowDist{ medLowDist }
+		, mVertexQualityDropoffDistance{ vertexQualityDropoffDistance }
 
 		, mImages{ {
 			{mImagePixelDims[0], mImageWorldSizes[0], screenWidth, screenHeight, getClosestWorldPixelPos(cameraPos, 0)},
@@ -95,11 +92,10 @@ public:
 		if (mLowQualityPlaneVerticesPerEdge != mLowQualityPlane.getVerticesPerEdge()) {
 			mLowQualityPlane.rebuild(mLowQualityPlaneVerticesPerEdge);
 		}
-		if (mMedQualityPlaneVerticesPerEdgeScale * mLowQualityPlaneVerticesPerEdge != mMedQualityPlane.getVerticesPerEdge()) {
-			mMedQualityPlane.rebuild(mMedQualityPlaneVerticesPerEdgeScale * mLowQualityPlaneVerticesPerEdge);
-		}
-		if (mHighQualityPlaneVerticesPerEdgeScale * mLowQualityPlaneVerticesPerEdge != mHighQualityPlane.getVerticesPerEdge()) {
-			mHighQualityPlane.rebuild(mHighQualityPlaneVerticesPerEdgeScale * mLowQualityPlaneVerticesPerEdge);
+
+		int highQualityVerticesPerEdge{ mHighQualityPlaneVerticesPerEdgeScale * (mLowQualityPlaneVerticesPerEdge - 1) + 1 }; // We want the distance between vertices to be multiples of each other, so we do this
+		if (highQualityVerticesPerEdge != mHighQualityPlane.getVerticesPerEdge()) {
+			mHighQualityPlane.rebuild(highQualityVerticesPerEdge);
 		}
 
 		// Update images
@@ -155,28 +151,19 @@ public:
  		for (int x{ -mChunkCount / 2 }; x <= mChunkCount / 2; ++x) {
 			for (int z{ -mChunkCount / 2 }; z <= mChunkCount / 2; ++z) {
 
-				glm::vec3 smoothChunkPos{ camera.getPosition() - glm::vec3(x * mChunkWidth, 0, z * mChunkWidth) };
-				float chunkDist{ glm::length(smoothChunkPos - camera.getPosition()) };
-				Plane* currPlane;
-				if (chunkDist > mMedLowDist) {
-					currPlane = &mLowQualityPlane;
-				}
-				else if (chunkDist > mHighMedDist) {
-					currPlane = &mMedQualityPlane;
-				}
-				else {
-					currPlane = &mHighQualityPlane;
-				}
+				glm::vec3 chunkPos{ getClosestWorldVertexPos(camera.getPosition()) - glm::vec3(x * mChunkWidth, 0, z * mChunkWidth) };
+				float chunkDist{ glm::length(chunkPos - camera.getPosition()) };
+				Plane& currPlane{ chunkDist > mVertexQualityDropoffDistance ? mLowQualityPlane : mHighQualityPlane };
 
-				glm::vec3 chunkPos{ getClosestWorldVertexPos(camera.getPosition()) - glm::vec3(x * mChunkWidth, 0, z * mChunkWidth)};
 				mTerrainShader.setVector3("planePos", { chunkPos.x, 0, chunkPos.z });
 				mTerrainShader.setFloat("planeWorldWidth", mChunkWidth);
 
-				currPlane->useVertexArray();
-				for (int i{ 0 }; i < mArtisticParams.getMaxShellCount(); ++i) {
-					mTerrainShader.setInt("shellIndex", i);
-					glDrawElements(GL_TRIANGLES, currPlane->getIndexCount(), GL_UNSIGNED_INT, 0);
-				}
+				currPlane.useVertexArray();
+
+				int shellCount{ mArtisticParams.getShellCount() };
+
+				// glInstanceID is 1 greater than the shellIndex (base terrain is -1 shell index, first shell is 0 shell index)
+				glDrawElementsInstanced(GL_TRIANGLES, currPlane.getIndexCount(), GL_UNSIGNED_INT, 0, shellCount + 1); // Draw each shell plus the base terrain
 			}
 		}
 
@@ -213,18 +200,15 @@ private:
 	std::array<TerrainImageGenerator, ImageCount> mImages;
 
 	int mLowQualityPlaneVerticesPerEdge;
-	int mMedQualityPlaneVerticesPerEdgeScale;
 	int mHighQualityPlaneVerticesPerEdgeScale;
 
 	Shader mTerrainImageShader;
 	Shader mTerrainShader;
 
 	Plane mLowQualityPlane;
-	Plane mMedQualityPlane;
 	Plane mHighQualityPlane;
 
-	float mHighMedDist;
-	float mMedLowDist;
+	float mVertexQualityDropoffDistance;
 
 	VertexArray mScreenQuad;
 
@@ -245,10 +229,8 @@ private:
 		ImGui::DragInt("Width", &mChunkWidth, 1, 1, 100);
 		ImGui::DragInt("Count", &mChunkCount, 1, 1, 100);
 		ImGui::DragInt("Low quality plane vertices", &mLowQualityPlaneVerticesPerEdge, 1, 2, 1000);
-		ImGui::DragInt("Med quality plane quality scale", &mMedQualityPlaneVerticesPerEdgeScale, 1, 2, 1000);
 		ImGui::DragInt("High quality plane quality scale", &mHighQualityPlaneVerticesPerEdgeScale, 1, 2, 1000);
-		ImGui::DragFloat("First vertex LOD dist", &mHighMedDist, 1, 1, 1000);
-		ImGui::DragFloat("Second vertex LOD dist", &mMedLowDist, 1, 1, 1000);
+		ImGui::DragFloat("Vertex LOD dist", &mVertexQualityDropoffDistance, 1, 1, 1000);
 		ImGui::End();
 
 		ImGui::Begin("Terrain Images");

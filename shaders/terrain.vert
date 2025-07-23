@@ -15,14 +15,14 @@ uniform float imageScales[3];
 uniform vec2 imagePositions[3];
 
 layout(std140, binding = 1) uniform ArtisticParams {
-	uniform float extrudePerShell;
+	uniform float terrainScale;
 	uniform float maxFogDist;
 	uniform float colorDotCutoff;
-	uniform float shellTexelScale;
-	uniform float cutoffLossPerShell;
-	uniform float cutoffBase;
-	uniform int maxShellCount;
-	uniform float terrainScale;
+	uniform int shellCount;
+	uniform float shellMaxHeight;
+	uniform float shellDetail;
+	uniform float shellMaxCutoff;
+	uniform float shellBaseCutoff;
 };
 
 // Per frame
@@ -31,8 +31,8 @@ uniform mat4 proj;
 
 // Per plane
 uniform float planeWorldWidth;
-uniform int shellIndex;
 uniform vec3 planePos;
+out flat int shellIndex;
 
 vec3 getTerrainInfo(vec2 worldPos) {
 	for (int i = 0; i < 3; ++i) {
@@ -53,7 +53,12 @@ void main() {
 	vec3 terrainInfo = getTerrainInfo(flatWorldPos);
 	vec3 normal = normalize(vec3(-terrainInfo.y, 1, -terrainInfo.z));
 	worldPos.y += terrainInfo.x;
-	worldPos.xyz += normal * shellIndex * extrudePerShell;
+
+	shellIndex = gl_InstanceID - 1;
+	if (shellIndex >= 0) {
+		float shellProgress = float(shellIndex + 1) / shellCount;
+		worldPos.xyz += normal * shellProgress * shellMaxHeight;
+	}
 
 	viewPos = (view * worldPos).xyz;
 	gl_Position = proj * vec4(viewPos, 1);

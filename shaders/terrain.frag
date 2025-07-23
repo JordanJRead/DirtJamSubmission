@@ -14,18 +14,18 @@ uniform float imageScales[3];
 uniform vec2 imagePositions[3];
 
 layout(std140, binding = 1) uniform ArtisticParams {
-	uniform float extrudePerShell;
+	uniform float terrainScale;
 	uniform float maxFogDist;
 	uniform float colorDotCutoff;
-	uniform float shellTexelScale;
-	uniform float cutoffLossPerShell;
-	uniform float cutoffBase;
-	uniform int maxShellCount;
-	uniform float terrainScale;
+	uniform int shellCount;
+	uniform float shellMaxHeight;
+	uniform float shellDetail;
+	uniform float shellMaxCutoff;
+	uniform float shellBaseCutoff;
 };
 
 // Per plane
-uniform int shellIndex;
+in flat int shellIndex;
 
 vec3 getTerrainInfo(vec2 worldPos) {
 	for (int i = 0; i < 3; ++i) {
@@ -106,13 +106,13 @@ void main() {
 	float ambient = 0;
 
 	// Texturing
-	int x = getClosestInt(floor((flatWorldPos * shellTexelScale).x));
-	int y = getClosestInt(floor((flatWorldPos * shellTexelScale).y));
+	int x = getClosestInt(floor((flatWorldPos * shellDetail).x));
+	int y = getClosestInt(floor((flatWorldPos * shellDetail).y));
 	float randNum = randToFloat(rand(labelPoint(x, y)));
 
 	bool shallowEnough = diffuse >= colorDotCutoff;
 
-	if (shellIndex < 1) {
+	if (shellIndex < 0) {
 		// Blend color
 		vec3 albedo = dirtAlbedo + easeInExpo(diffuse) * (grassAlbedo - dirtAlbedo);
 		albedo = dirtAlbedo + (shallowEnough ? 1 : 0) * (grassAlbedo - dirtAlbedo);
@@ -126,11 +126,13 @@ void main() {
 		FragColor = vec4(preFogColor, 1);
 	}
 	else {
-		if (!shallowEnough || randNum < cutoffLossPerShell * shellIndex + cutoffBase)
+		float shellProgress = float(shellIndex + 1) / shellCount;
+		float shellCutoff = shellBaseCutoff + shellProgress * (shellMaxCutoff - shellBaseCutoff);
+		if (!shallowEnough || randNum < shellCutoff)
 			discard;
 			
 		// Blend color
-		vec3 albedo = grassAlbedo + grassAlbedo * shellIndex / float(maxShellCount) * 0.5;
+		vec3 albedo = grassAlbedo + grassAlbedo * shellProgress * 0.5;
 
 		float distFromCamera = length(viewPos);
 		float maxDist = maxFogDist;

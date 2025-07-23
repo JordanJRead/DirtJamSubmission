@@ -5,28 +5,28 @@
 #include "shaderguipair.h"
 
 struct ArtisticParamsData {
-	float extrudePerShell;
-	float maxFogDist;
-	float colordotCutoff;
-	float shellTexelScale;
-	float shellCutoffLossPerShell;
-	float shellCutoffBase;
-	int maxShellCount;
 	float terrainScale;
+	float maxFogDist;
+	float colorDotCutoff;
+	int shellCount;
+	float shellMaxHeight;
+	float shellDetail;
+	float shellMaxCutoff;
+	float shellBaseCutoff;
 };
 
 class ArtisticParamsBuffer {
 public:
-	ArtisticParamsBuffer(float extrudePerShell, float maxFogDist, float colorDotCutoff, float shellTexelScale, float shellCutoffLossPerShell, float shellCutoffBase, int maxShellCount, float terrainScale);
+	ArtisticParamsBuffer(float terrainScale, float maxFogDist, float colorDotCutoff, int shellCount, float shellMaxHeight, float shellDetail, float shellMaxCutoff, float shellBaseCutoff);
 	ArtisticParamsBuffer(const ArtisticParamsData& data)
-		: mExtrudePerShell{ data.extrudePerShell }
+		: mTerrainScale{ data.terrainScale }
 		, mMaxFogDist{ data.maxFogDist }
-		, mColorDotCutoff{ data.colordotCutoff }
-		, mShellTexelScale{ data.shellTexelScale }
-		, mShellCutoffLossPerShell{ data.shellCutoffLossPerShell }
-		, mShellCutoffBase{ data.shellCutoffBase }
-		, mMaxShellCount{ data.maxShellCount }
-		, mTerrainScale{ data.terrainScale }
+		, mColorDotCutoff{ data.colorDotCutoff }
+		, mShellCount{ data.shellCount }
+		, mShellMaxHeight{ data.shellMaxHeight }
+		, mShellDetail{ data.shellDetail }
+		, mShellMaxCutoff{ data.shellMaxCutoff }
+		, mShellBaseCutoff{ data.shellBaseCutoff }
 	{
 		glBindBuffer(GL_UNIFORM_BUFFER, mBUF);
 		glBufferData(GL_UNIFORM_BUFFER, sizeof(int) + 7 * sizeof(float), nullptr, GL_STATIC_DRAW);
@@ -36,19 +36,54 @@ public:
 	}
 	void renderUI();
 	void updateGPU(bool force);
-	int getMaxShellCount() const { return mMaxShellCount.mGUI; }
+	int getShellCount() const { return mShellCount.mGUI; }
 	float getTerrainScale() const { return mTerrainScale.mGUI; }
+	void lowerShellCount(int newShellCount) {
+		glBindBuffer(GL_UNIFORM_BUFFER, mBUF);
+		int offset{ 0 };
+
+		int size{ sizeof(float) };
+		offset += size;
+
+		size = sizeof(float);
+		offset += size;
+
+		size = sizeof(float);
+		offset += size;
+
+		size = sizeof(int);
+		mShellCount.mShader = mShellCount.mGUI;
+		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &newShellCount);
+	}
+
+	void fixShellCount() {
+		glBindBuffer(GL_UNIFORM_BUFFER, mBUF);
+		int offset{ 0 };
+
+		int size{ sizeof(float) };
+		offset += size;
+
+		size = sizeof(float);
+		offset += size;
+
+		size = sizeof(float);
+		offset += size;
+
+		size = sizeof(int);
+		mShellCount.mShader = mShellCount.mGUI;
+		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mShellCount.mShader);
+	}
 
 private:
 	BUF mBUF;
-	ShaderGUIPair<float> mExtrudePerShell;
+	ShaderGUIPair<float> mTerrainScale;
 	ShaderGUIPair<float> mMaxFogDist;
 	ShaderGUIPair<float> mColorDotCutoff;
-	ShaderGUIPair<float> mShellTexelScale;
-	ShaderGUIPair<float> mShellCutoffLossPerShell;
-	ShaderGUIPair<float> mShellCutoffBase;
-	ShaderGUIPair<int> mMaxShellCount;
-	ShaderGUIPair<float> mTerrainScale;
+	ShaderGUIPair<int> mShellCount;
+	ShaderGUIPair<float> mShellMaxHeight;
+	ShaderGUIPair<float> mShellDetail;
+	ShaderGUIPair<float> mShellMaxCutoff;
+	ShaderGUIPair<float> mShellBaseCutoff;
 };
 
 #endif
