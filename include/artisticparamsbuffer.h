@@ -6,7 +6,7 @@
 
 struct ArtisticParamsData {
 	float terrainScale;
-	float maxFogDist;
+	float fogStrength;
 	float colorDotCutoff;
 	int shellCount;
 	float shellMaxHeight;
@@ -17,10 +17,10 @@ struct ArtisticParamsData {
 
 class ArtisticParamsBuffer {
 public:
-	ArtisticParamsBuffer(float terrainScale, float maxFogDist, float colorDotCutoff, int shellCount, float shellMaxHeight, float shellDetail, float shellMaxCutoff, float shellBaseCutoff);
+	ArtisticParamsBuffer(float terrainScale, float fogStrength, float colorDotCutoff, int shellCount, float shellMaxHeight, float shellDetail, float shellMaxCutoff, float shellBaseCutoff);
 	ArtisticParamsBuffer(const ArtisticParamsData& data)
 		: mTerrainScale{ data.terrainScale }
-		, mMaxFogDist{ data.maxFogDist }
+		, mFogStrength{ data.fogStrength }
 		, mColorDotCutoff{ data.colorDotCutoff }
 		, mShellCount{ data.shellCount }
 		, mShellMaxHeight{ data.shellMaxHeight }
@@ -77,7 +77,7 @@ public:
 private:
 	BUF mBUF;
 	ShaderGUIPair<float> mTerrainScale;
-	ShaderGUIPair<float> mMaxFogDist;
+	ShaderGUIPair<float> mFogStrength;
 	ShaderGUIPair<float> mColorDotCutoff;
 	ShaderGUIPair<int> mShellCount;
 	ShaderGUIPair<float> mShellMaxHeight;

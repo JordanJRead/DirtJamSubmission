@@ -15,7 +15,7 @@ uniform vec2 imagePositions[3];
 
 layout(std140, binding = 1) uniform ArtisticParams {
 	uniform float terrainScale;
-	uniform float maxFogDist;
+	uniform float fogStrength;
 	uniform float colorDotCutoff;
 	uniform int shellCount;
 	uniform float shellMaxHeight;
@@ -118,12 +118,11 @@ void main() {
 		albedo = dirtAlbedo + (shallowEnough ? 1 : 0) * (grassAlbedo - dirtAlbedo);
 
 		float distFromCamera = length(viewPos);
-		float maxDist = maxFogDist;
-		float visibility = 1 - easeInOutQuint(clamp(distFromCamera / maxDist, 0, 1));
+		float visibility = exp(-distFromCamera * fogStrength);
 
 		vec3 preFogColor = (diffuse + ambient) * albedo;
 		vec3 postFogColor = visibility * preFogColor + (1 - visibility) * vec3(0.5, 0.5, 0.5);
-		FragColor = vec4(preFogColor, 1);
+		FragColor = vec4(postFogColor, 1);
 	}
 	else {
 		float shellProgress = float(shellIndex + 1) / shellCount;
@@ -135,11 +134,10 @@ void main() {
 		vec3 albedo = grassAlbedo + grassAlbedo * shellProgress * 0.5;
 
 		float distFromCamera = length(viewPos);
-		float maxDist = maxFogDist;
-		float visibility = 1 - easeInOutQuint(clamp(distFromCamera / maxDist, 0, 1));
+		float visibility = exp(-distFromCamera * fogStrength);
 
 		vec3 preFogColor = (diffuse + ambient) * albedo;
 		vec3 postFogColor = visibility * preFogColor + (1 - visibility) * vec3(0.5, 0.5, 0.5);
-		FragColor = vec4(preFogColor, 1);
+		FragColor = vec4(postFogColor, 1);
 	}
 }

@@ -4,7 +4,7 @@
 
 ArtisticParamsBuffer::ArtisticParamsBuffer(float terrainScale, float maxFogDist, float colorDotCutoff, int shellCount, float shellMaxHeight, float shellDetail, float shellMaxCutoff, float shellBaseCutoff)
 	: mTerrainScale{ terrainScale }
-	, mMaxFogDist{ maxFogDist }
+	, mFogStrength{ maxFogDist }
 	, mColorDotCutoff{ colorDotCutoff }
 	, mShellCount{ shellCount }
 	, mShellMaxHeight{ shellMaxHeight }
@@ -31,7 +31,7 @@ ArtisticParamsBuffer::ArtisticParamsBuffer(float terrainScale, float maxFogDist,
 void ArtisticParamsBuffer::renderUI() {
 	ImGui::Begin("Artistic Parameters");
 	ImGui::DragFloat("Terrain scale", &mTerrainScale.mGUI);
-	ImGui::DragFloat("View distance", &mMaxFogDist.mGUI, 1, 1, 1000);
+	ImGui::DragFloat("Fog strength", &mFogStrength.mGUI, 0.0001, 0, 1);
 	ImGui::DragFloat("Color dot cutoff", &mColorDotCutoff.mGUI, 0.005, 0, 1);
 	ImGui::DragInt("Shell count", &mShellCount.mGUI, 0.1, 0, 256);
 	ImGui::DragFloat("Shell max height", &mShellMaxHeight.mGUI, 0.001, 0, 10);
@@ -65,9 +65,9 @@ void ArtisticParamsBuffer::updateGPU(bool force) {
 	offset += size;
 
 	size = sizeof(float);
-	if (mMaxFogDist.hasDiff() || force) {
-		mMaxFogDist.mShader = mMaxFogDist.mGUI;
-		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mMaxFogDist.mShader);
+	if (mFogStrength.hasDiff() || force) {
+		mFogStrength.mShader = mFogStrength.mGUI;
+		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mFogStrength.mShader);
 	}
 	offset += size;
 
