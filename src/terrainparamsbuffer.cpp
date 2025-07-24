@@ -20,6 +20,7 @@ void TerrainParamsBuffer::renderUI() {
 	ImGui::DragFloat("Amplitude", &mInitialAmplitude.mGUI, 0.7, 0, 500);
 	ImGui::DragFloat("Amplitude decay", &mAmplitudeDecay.mGUI, 0.0005, 0, 100);
 	ImGui::DragFloat("Spread factor", &mSpreadFactor.mGUI, 0.001, 0, 100);
+	ImGui::DragFloat("Roughness", &mRoughness.mGUI, 1);
 	ImGui::End();
 }
 
@@ -60,5 +61,14 @@ bool TerrainParamsBuffer::updateGPU(bool force) {
 		hasChanged = true;
 	}
 	offset += size;
+
+	size = sizeof(float);
+	if (mRoughness.hasDiff() || force) {
+		mRoughness.mShader = mRoughness.mGUI;
+		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mRoughness.mShader);
+		hasChanged = true;
+	}
+	offset += size;
+
 	return hasChanged;
 }

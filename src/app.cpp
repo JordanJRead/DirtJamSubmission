@@ -16,7 +16,7 @@ App::App(int screenWidth, int screenHeight, GLFWwindow* window)
 	, mWindow{ window }
 	, mScreenWidth{ screenWidth }
 	, mScreenHeight{ screenHeight }
-	, mTerrainRenderer{ screenWidth, screenHeight, mCamera.getPosition(), 16, 20, ArtisticParamsData{ 22, 0.02, 0.44, 20, 0.04, 100, 1, 0.2 }, TerrainParamsData{ 15, 28, 0.4, 2 }, {7000, 5000, 5000}, {2, 11, 45}, std::array<glm::vec2, 3> {glm::vec2{0}, glm::vec2{0}, glm::vec2{0}}, 20, 6, 110 }
+	, mTerrainRenderer{ screenWidth, screenHeight, mCamera.getPosition(), 16, 20, ArtisticParamsData{ 22, 0.02, 0.44, 20, 0.04, 100, 1, 0.2 }, TerrainParamsData{ 15, 28, 0.4, 2, 20 }, {7000, 5000, 5000}, {2, 11, 45}, std::array<glm::vec2, 3> {glm::vec2{0}, glm::vec2{0}, glm::vec2{0}}, 20, 6, 110 }
 {
 	glfwSetWindowUserPointer(mWindow, this);
 	glfwSetCursorPosCallback(mWindow, mouseCallback);
@@ -73,16 +73,6 @@ void App::loop() {
 
 		// Terrain
 		mTerrainRenderer.render(mCamera, displayDeltaTime);
-
-		// Grid
-		//if (displayGridGUI) {
-		//	mGridShader.use();
-		//	mGridShader.setMatrix4("view", mCamera.getViewMatrix());
-		//	mGridShader.setMatrix4("proj", mCamera.getProjectionMatrix());
-		//	mGridShader.setFloat("scale", worldGridPlane.getWidth());
-		//	worldGridPlane.useVertexArray();
-		//	glDrawElements(GL_TRIANGLES, worldGridPlane.getIndexCount(), GL_UNSIGNED_INT, 0);
-		//}
 
 		glfwSwapBuffers(mWindow);
 		glfwPollEvents();

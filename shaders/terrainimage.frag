@@ -9,6 +9,7 @@ layout(std140, binding = 0) uniform terrainParams {
 	uniform float initialAmplitude;
 	uniform float amplitudeDecay;
 	uniform float spreadFactor;
+	uniform float roughness;
 };
 
 uniform float scale;
@@ -135,8 +136,10 @@ vec3 getTerrainInfo(vec2 pos) {
 	}
 	terrainInfo.yz *= scale;
 	
-	float amp = amp(terrainInfo.x, 20);
-	float damp = damp(terrainInfo.x, 20);
+	float amp = amp(terrainInfo.x, roughness);
+	amp = 1;
+	float damp = damp(terrainInfo.x, roughness);
+	damp = 0;
 
 	vec3 finalOutput = vec3(0);
 	finalOutput.x = terrainInfo.x * amp;

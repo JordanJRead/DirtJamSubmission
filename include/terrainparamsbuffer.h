@@ -9,6 +9,7 @@ struct TerrainParamsData {
 	float initialAmplitude;
 	float amplitudeDecay;
 	float spreadFactor;
+	float roughness;
 };
 
 class TerrainParamsBuffer {
@@ -18,9 +19,10 @@ public:
 		, mInitialAmplitude{ data.initialAmplitude }
 		, mAmplitudeDecay{ data.amplitudeDecay }
 		, mSpreadFactor{ data.spreadFactor }
+		, mRoughness{ data.roughness }
 	{
 		glBindBuffer(GL_UNIFORM_BUFFER, mBUF);
-		glBufferData(GL_UNIFORM_BUFFER, sizeof(int) + 3 * sizeof(float), nullptr, GL_STATIC_DRAW);
+		glBufferData(GL_UNIFORM_BUFFER, sizeof(int) + 4 * sizeof(float), nullptr, GL_STATIC_DRAW);
 		glBindBufferBase(GL_UNIFORM_BUFFER, 0, mBUF);
 		updateGPU(true);
 	}
@@ -34,6 +36,7 @@ private:
 	ShaderGUIPair<float> mInitialAmplitude;
 	ShaderGUIPair<float> mAmplitudeDecay;
 	ShaderGUIPair<float> mSpreadFactor;
+	ShaderGUIPair<float> mRoughness;
 };
 
 #endif
