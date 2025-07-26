@@ -65,7 +65,7 @@ vec2 quinticDerivative(vec2 t) {
 	return vec2(30) * t * t * (t * (t - vec2(2)) + vec2(1));
 }
 
-vec3 perlin(vec2 pos) {
+vec3 perlin(vec2 pos, int reroll = 0) {
 	int x0 = getClosestInt(floor(pos.x));
 	int x1 = getClosestInt(ceil(pos.x));
 	int y0 = getClosestInt(floor(pos.y));
@@ -75,10 +75,22 @@ vec3 perlin(vec2 pos) {
 	
 	vec2 relPoint =  pos - p00;
 
-	float r00 = randToFloat(rand(labelPoint(x0, y0)));
-	float r10 = randToFloat(rand(labelPoint(x1, y0)));
-	float r01 = randToFloat(rand(labelPoint(x0, y1)));
-	float r11 = randToFloat(rand(labelPoint(x1, y1)));
+	uint rui00 = rand(labelPoint(x0, y0));
+	uint rui10 = rand(labelPoint(x1, y0));
+	uint rui01 = rand(labelPoint(x0, y1));
+	uint rui11 = rand(labelPoint(x1, y1));
+
+	for (int i = 0; i < reroll; ++i) {
+		rui00 = rand(rui00);
+		rui10 = rand(rui10);
+		rui01 = rand(rui01);
+		rui11 = rand(rui11);
+	}
+
+	float r00 = randToFloat(rui00);
+	float r10 = randToFloat(rui10);
+	float r01 = randToFloat(rui01);
+	float r11 = randToFloat(rui11);
 
 	vec2 g00 = randUnitVector(r00);
 	vec2 g10 = randUnitVector(r10);
@@ -99,7 +111,9 @@ vec3 perlin(vec2 pos) {
 	vec2 u = quinticInterpolation(relPoint);
 	vec2 du = quinticDerivative(relPoint);
 	float noise = d00 + u.x * (d10 - d00) + u.y * (d01 - d00) + u.x * u.y * (d00 - d10 - d01 + d11);
+	noise = noise / 1.414 + 0.5;
 	vec2 tangents = g00 + u.x * (g10 - g00) + u.y * (g01 - g00) + u.x * u.y * (g00 - g10 - g01 + g11) + du * (u.yx * (d00 - d10 - d01 + d11) + vec2(d10, d01) - d00);
+	tangents /= 1.414;
 
 	return vec3(noise, tangents.x, tangents.y);
 }
@@ -119,6 +133,26 @@ float damp(float x, float rough) {
 }
 
 vec3 getTerrainInfo(vec2 pos) {
+	vec3 mountain = perlin(pos * 0.2);
+	mountain.yz *= scale;
+	mountain.yz *= 0.2;
+
+	mountain.x *= mountain.x;
+	mountain.yz = 2 * mountain.x * mountain.yz;
+	mountain.x *= mountain.x;
+	mountain.yz = 2 * mountain.x * mountain.yz;
+	mountain.x = mountain.x * 0.95 + 0.05;
+	mountain.yz = 0.9 * mountain.yz;
+
+	vec3 offset = perlin(pos * 0.08, 1);
+
+	offset.x = offset.x < 0.5 ? (16*offset.x*offset.x*offset.x*offset.x*offset.x) : 1 - pow(-2 * offset.x + 2, 5.0) / 2.0;
+	offset.yz *= offset.x < 0.5 ? 80 * offset.x * offset.x*offset.x*offset.x : 80 * (offset.x-1)*(offset.x-1)*(offset.x-1)*(offset.x-1);
+	
+	offset.yz *= scale;
+	offset.yz *= 0.08;
+	offset *= 20;
+
 	vec3 terrainInfo = vec3(0, 0, 0);
 
 	float amplitude = initialAmplitude;
@@ -142,8 +176,11 @@ vec3 getTerrainInfo(vec2 pos) {
 	damp = 0;
 
 	vec3 finalOutput = vec3(0);
-	finalOutput.x = terrainInfo.x * amp;
-	finalOutput.yz = terrainInfo.yz * amp + damp * terrainInfo.yz * vec2(terrainInfo.x); // derivative of terrainInfo.x * amp(terrainInfo.x);
+	finalOutput.x = terrainInfo.x * mountain.x;
+	finalOutput.yz = terrainInfo.x * mountain.yz + mountain.x * terrainInfo.yz;
+
+	finalOutput.x += offset.x;
+	finalOutput.yz += offset.yz;
 	return finalOutput;
 }
 

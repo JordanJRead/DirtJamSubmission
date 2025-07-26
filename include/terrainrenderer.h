@@ -25,7 +25,7 @@ public:
 	TerrainRenderer(int screenWidth, int screenHeight, const glm::vec3& cameraPos,
 		int chunkWidth, int chunkCount, const ArtisticParamsData& artistParams, const TerrainParamsData& terrainParams,
 		std::array<int, ImageCount> imagePixelDims, std::array<float, ImageCount> imageWorldSizes, std::array<glm::vec2, ImageCount> imageWorldPositions,
-		int lowQualityPlaneVerticesPerEdge, int highQualityPlaneVerticesPerEdgeScale, float vertexQualityDropoffDistance)
+		int lowQualityPlaneVerticesPerEdge, int highQualityPlaneVerticesPerEdgeScale, float vertexQualityDropoffDistance, float waterHeight)
 		: mChunkWidth{ chunkWidth }
 		, mChunkCount{ chunkCount }
 		
@@ -40,6 +40,7 @@ public:
 
 		, mTerrainImageShader{ "shaders/terrainimage.vert", "shaders/terrainimage.frag" }
 		, mTerrainShader{ "shaders/terrain.vert", "shaders/terrain.frag" }
+		, mWaterShader{ "shaders/water.vert", "shaders/water.frag" }
 
 		, mImageWorldPositions{ imageWorldPositions }
 		, mImagePixelDims{ imagePixelDims }
@@ -52,6 +53,8 @@ public:
 			{mImagePixelDims[1], mImageWorldSizes[1], screenWidth, screenHeight, getClosestWorldPixelPos(cameraPos, 1)},
 			{mImagePixelDims[2], mImageWorldSizes[2], screenWidth, screenHeight, getClosestWorldPixelPos(cameraPos, 2)}
 		} }
+
+		, mWaterHeight{ waterHeight }
 	{
 		std::vector<float> vertexData{
 		-1, -1,
@@ -142,6 +145,9 @@ public:
 		mTerrainShader.use();
 		mTerrainShader.setMatrix4("view", camera.getViewMatrix());
 		mTerrainShader.setMatrix4("proj", camera.getProjectionMatrix());
+		mWaterShader.use();
+		mWaterShader.setMatrix4("view", camera.getViewMatrix());
+		mWaterShader.setMatrix4("proj", camera.getProjectionMatrix());
 
 		for (int i{ 0 }; i < mImages.size(); ++i) {
 			mImages[i].bindImage(i);
@@ -151,6 +157,7 @@ public:
  		for (int x{ -mChunkCount / 2 }; x <= mChunkCount / 2; ++x) {
 			for (int z{ -mChunkCount / 2 }; z <= mChunkCount / 2; ++z) {
 
+				mTerrainShader.use();
 				glm::vec3 chunkPos{ getClosestWorldVertexPos(camera.getPosition()) - glm::vec3(x * mChunkWidth, 0, z * mChunkWidth) };
 				float chunkDist{ glm::length(chunkPos - camera.getPosition()) };
 				Plane& currPlane{ chunkDist > mVertexQualityDropoffDistance ? mLowQualityPlane : mHighQualityPlane };
@@ -164,6 +171,11 @@ public:
 
 				// glInstanceID is 1 greater than the shellIndex (base terrain is -1 shell index, first shell is 0 shell index)
 				glDrawElementsInstanced(GL_TRIANGLES, currPlane.getIndexCount(), GL_UNSIGNED_INT, 0, shellCount + 1); // Draw each shell plus the base terrain
+
+				mWaterShader.use();
+				mWaterShader.setVector3("planePos", { chunkPos.x, mWaterHeight, chunkPos.z });
+				mWaterShader.setFloat("planeWorldWidth", mChunkWidth);
+				glDrawElements(GL_TRIANGLES, currPlane.getIndexCount(), GL_UNSIGNED_INT, 0); // Draw each shell plus the base terrain
 			}
 		}
 
@@ -201,9 +213,11 @@ private:
 
 	int mLowQualityPlaneVerticesPerEdge;
 	int mHighQualityPlaneVerticesPerEdgeScale;
+	float mWaterHeight;
 
 	Shader mTerrainImageShader;
 	Shader mTerrainShader;
+	Shader mWaterShader;
 
 	Plane mLowQualityPlane;
 	Plane mHighQualityPlane;
@@ -231,6 +245,7 @@ private:
 		ImGui::DragInt("Low quality plane vertices", &mLowQualityPlaneVerticesPerEdge, 1, 2, 1000);
 		ImGui::DragInt("High quality plane quality scale", &mHighQualityPlaneVerticesPerEdgeScale, 1, 2, 1000);
 		ImGui::DragFloat("Vertex LOD dist", &mVertexQualityDropoffDistance, 1, 1, 1000);
+		ImGui::DragFloat("Water height", &mWaterHeight, 0.1);
 		ImGui::End();
 
 		ImGui::Begin("Terrain Images");
