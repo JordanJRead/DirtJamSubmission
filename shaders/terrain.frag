@@ -3,15 +3,8 @@
 
 in vec2 flatWorldPos;
 in vec3 viewPos;
+in flat int shellIndex;
 out vec4 FragColor;
-
-// Per app probably
-uniform int imageCount;
-uniform sampler2D images[3];
-
-// Per whenever they get changed
-uniform float imageScales[3];
-uniform vec2 imagePositions[3];
 
 layout(std140, binding = 1) uniform ArtisticParams {
 	uniform float terrainScale;
@@ -24,8 +17,15 @@ layout(std140, binding = 1) uniform ArtisticParams {
 	uniform float shellBaseCutoff;
 };
 
-// Per plane
-in flat int shellIndex;
+/// Uniforms
+// Per app
+uniform int imageCount;
+uniform sampler2D images[3];
+
+// Per whenever they get changed
+uniform float imageScales[3];
+uniform vec2 imagePositions[3];
+
 
 vec3 getTerrainInfo(vec2 worldPos) {
 	for (int i = 0; i < 3; ++i) {

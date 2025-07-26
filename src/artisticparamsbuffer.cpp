@@ -30,14 +30,14 @@ ArtisticParamsBuffer::ArtisticParamsBuffer(float terrainScale, float maxFogDist,
 
 void ArtisticParamsBuffer::renderUI() {
 	ImGui::Begin("Artistic Parameters");
-	ImGui::DragFloat("Terrain scale", &mTerrainScale.mGUI);
-	ImGui::DragFloat("Fog strength", &mFogStrength.mGUI, 0.0001, 0, 1);
-	ImGui::DragFloat("Color dot cutoff", &mColorDotCutoff.mGUI, 0.005, 0, 1);
-	ImGui::DragInt("Shell count", &mShellCount.mGUI, 0.1, 0, 256);
-	ImGui::DragFloat("Shell max height", &mShellMaxHeight.mGUI, 0.001, 0, 10);
-	ImGui::DragFloat("Shell detail", &mShellDetail.mGUI, 1, 1, 1000);
-	ImGui::DragFloat("Shell max cutoff", &mShellMaxCutoff.mGUI, 0.01, 0, 1);
-	ImGui::DragFloat("Shell base cutoff", &mShellBaseCutoff.mGUI, 0.01, 0, 1);
+	ImGui::DragFloat("Terrain scale", &mTerrainScale.mCPU);
+	ImGui::DragFloat("Fog strength", &mFogStrength.mCPU, 0.0001, 0, 1);
+	ImGui::DragFloat("Color dot cutoff", &mColorDotCutoff.mCPU, 0.005, 0, 1);
+	ImGui::DragInt("Shell count", &mShellCount.mCPU, 0.1, 0, 256);
+	ImGui::DragFloat("Shell max height", &mShellMaxHeight.mCPU, 0.001, 0, 10);
+	ImGui::DragFloat("Shell detail", &mShellDetail.mCPU, 1, 1, 1000);
+	ImGui::DragFloat("Shell max cutoff", &mShellMaxCutoff.mCPU, 0.01, 0, 1);
+	ImGui::DragFloat("Shell base cutoff", &mShellBaseCutoff.mCPU, 0.01, 0, 1);
 	ImGui::End();
 }
 
@@ -59,57 +59,57 @@ void ArtisticParamsBuffer::updateGPU(bool force) {
 
 	int size{ sizeof(float) };
 	if (mTerrainScale.hasDiff() || force) {
-		mTerrainScale.mShader = mTerrainScale.mGUI;
-		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mTerrainScale.mShader);
+		mTerrainScale.mGPU = mTerrainScale.mCPU;
+		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mTerrainScale.mGPU);
 	}
 	offset += size;
 
 	size = sizeof(float);
 	if (mFogStrength.hasDiff() || force) {
-		mFogStrength.mShader = mFogStrength.mGUI;
-		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mFogStrength.mShader);
+		mFogStrength.mGPU = mFogStrength.mCPU;
+		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mFogStrength.mGPU);
 	}
 	offset += size;
 
 	size = sizeof(float);
 	if (mColorDotCutoff.hasDiff() || force) {
-		mColorDotCutoff.mShader = mColorDotCutoff.mGUI;
-		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mColorDotCutoff.mShader);
+		mColorDotCutoff.mGPU = mColorDotCutoff.mCPU;
+		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mColorDotCutoff.mGPU);
 	}
 	offset += size;
 
 	size = sizeof(int);
 	if (mShellCount.hasDiff() || force) {
-		mShellCount.mShader = mShellCount.mGUI;
-		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mShellCount.mShader);
+		mShellCount.mGPU = mShellCount.mCPU;
+		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mShellCount.mGPU);
 	}
 	offset += size;
 
 	size = sizeof(float);
 	if (mShellMaxHeight.hasDiff() || force) {
-		mShellMaxHeight.mShader = mShellMaxHeight.mGUI;
-		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mShellMaxHeight.mShader);
+		mShellMaxHeight.mGPU = mShellMaxHeight.mCPU;
+		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mShellMaxHeight.mGPU);
 	}
 	offset += size;
 
 	size = sizeof(float);
 	if (mShellDetail.hasDiff() || force) {
-		mShellDetail.mShader = mShellDetail.mGUI;
-		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mShellDetail.mShader);
+		mShellDetail.mGPU = mShellDetail.mCPU;
+		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mShellDetail.mGPU);
 	}
 	offset += size;
 
 	size = sizeof(float);
 	if (mShellMaxCutoff.hasDiff() || force) {
-		mShellMaxCutoff.mShader = mShellMaxCutoff.mGUI;
-		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mShellMaxCutoff.mShader);
+		mShellMaxCutoff.mGPU = mShellMaxCutoff.mCPU;
+		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mShellMaxCutoff.mGPU);
 	}
 	offset += size;
 
 	size = sizeof(float);
 	if (mShellBaseCutoff.hasDiff() || force) {
-		mShellBaseCutoff.mShader = mShellBaseCutoff.mGUI;
-		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mShellBaseCutoff.mShader);
+		mShellBaseCutoff.mGPU = mShellBaseCutoff.mCPU;
+		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mShellBaseCutoff.mGPU);
 	}
 	offset += size;
 }

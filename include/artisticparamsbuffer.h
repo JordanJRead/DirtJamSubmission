@@ -2,7 +2,7 @@
 #define ARTISTIC_PARAMS_BUFFER_H
 
 #include "OpenGLObjects/BUF.h"
-#include "shaderguipair.h"
+#include "cpugpupair.h"
 
 struct ArtisticParamsData {
 	float terrainScale;
@@ -36,8 +36,8 @@ public:
 	}
 	void renderUI();
 	void updateGPU(bool force);
-	int getShellCount() const { return mShellCount.mGUI; }
-	float getTerrainScale() const { return mTerrainScale.mGUI; }
+	int getShellCount() const { return mShellCount.mCPU; }
+	float getTerrainScale() const { return mTerrainScale.mCPU; }
 	void lowerShellCount(int newShellCount) {
 		glBindBuffer(GL_UNIFORM_BUFFER, mBUF);
 		int offset{ 0 };
@@ -52,7 +52,7 @@ public:
 		offset += size;
 
 		size = sizeof(int);
-		mShellCount.mShader = mShellCount.mGUI;
+		mShellCount.mGPU = mShellCount.mCPU;
 		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &newShellCount);
 	}
 
@@ -70,20 +70,20 @@ public:
 		offset += size;
 
 		size = sizeof(int);
-		mShellCount.mShader = mShellCount.mGUI;
-		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mShellCount.mShader);
+		mShellCount.mGPU = mShellCount.mCPU;
+		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mShellCount.mGPU);
 	}
 
 private:
 	BUF mBUF;
-	ShaderGUIPair<float> mTerrainScale;
-	ShaderGUIPair<float> mFogStrength;
-	ShaderGUIPair<float> mColorDotCutoff;
-	ShaderGUIPair<int> mShellCount;
-	ShaderGUIPair<float> mShellMaxHeight;
-	ShaderGUIPair<float> mShellDetail;
-	ShaderGUIPair<float> mShellMaxCutoff;
-	ShaderGUIPair<float> mShellBaseCutoff;
+	CPUGPUPair<float> mTerrainScale;
+	CPUGPUPair<float> mFogStrength;
+	CPUGPUPair<float> mColorDotCutoff;
+	CPUGPUPair<int> mShellCount;
+	CPUGPUPair<float> mShellMaxHeight;
+	CPUGPUPair<float> mShellDetail;
+	CPUGPUPair<float> mShellMaxCutoff;
+	CPUGPUPair<float> mShellBaseCutoff;
 };
 
 #endif

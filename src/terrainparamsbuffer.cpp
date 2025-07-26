@@ -16,11 +16,11 @@
 
 void TerrainParamsBuffer::renderUI() {
 	ImGui::Begin("Terrain Parameters");
-	ImGui::DragInt("Octave count", &mOctaveCount.mGUI, 0.1, 1, 30);
-	ImGui::DragFloat("Amplitude", &mInitialAmplitude.mGUI, 0.7, 0, 500);
-	ImGui::DragFloat("Amplitude decay", &mAmplitudeDecay.mGUI, 0.0005, 0, 100);
-	ImGui::DragFloat("Spread factor", &mSpreadFactor.mGUI, 0.001, 0, 100);
-	ImGui::DragFloat("Roughness", &mRoughness.mGUI, 1);
+	ImGui::DragInt("Octave count", &mOctaveCount.mCPU, 0.1, 1, 30);
+	ImGui::DragFloat("Amplitude", &mInitialAmplitude.mCPU, 0.7, 0, 500);
+	ImGui::DragFloat("Amplitude decay", &mAmplitudeDecay.mCPU, 0.0005, 0, 100);
+	ImGui::DragFloat("Spread factor", &mSpreadFactor.mCPU, 0.001, 0, 100);
+	ImGui::DragFloat("Roughness", &mRoughness.mCPU, 1);
 	ImGui::End();
 }
 
@@ -32,40 +32,40 @@ bool TerrainParamsBuffer::updateGPU(bool force) {
 
 	int size{ sizeof(int) };
 	if (mOctaveCount.hasDiff() || force) {
-		mOctaveCount.mShader = mOctaveCount.mGUI;
-		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mOctaveCount.mShader);
+		mOctaveCount.mGPU = mOctaveCount.mCPU;
+		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mOctaveCount.mGPU);
 		hasChanged = true;
 	}
 	offset += size;
 
 	size = sizeof(float);
 	if (mInitialAmplitude.hasDiff() || force) {
-		mInitialAmplitude.mShader = mInitialAmplitude.mGUI;
-		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mInitialAmplitude.mShader);
+		mInitialAmplitude.mGPU = mInitialAmplitude.mCPU;
+		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mInitialAmplitude.mGPU);
 		hasChanged = true;
 	}
 	offset += size;
 
 	size = sizeof(float);
 	if (mAmplitudeDecay.hasDiff() || force) {
-		mAmplitudeDecay.mShader = mAmplitudeDecay.mGUI;
-		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mAmplitudeDecay.mShader);
+		mAmplitudeDecay.mGPU = mAmplitudeDecay.mCPU;
+		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mAmplitudeDecay.mGPU);
 		hasChanged = true;
 	}
 	offset += size;
 
 	size = sizeof(float);
 	if (mSpreadFactor.hasDiff() || force) {
-		mSpreadFactor.mShader = mSpreadFactor.mGUI;
-		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mSpreadFactor.mShader);
+		mSpreadFactor.mGPU = mSpreadFactor.mCPU;
+		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mSpreadFactor.mGPU);
 		hasChanged = true;
 	}
 	offset += size;
 
 	size = sizeof(float);
 	if (mRoughness.hasDiff() || force) {
-		mRoughness.mShader = mRoughness.mGUI;
-		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mRoughness.mShader);
+		mRoughness.mGPU = mRoughness.mCPU;
+		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mRoughness.mGPU);
 		hasChanged = true;
 	}
 	offset += size;

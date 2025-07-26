@@ -2,7 +2,7 @@
 #define TERRAIN_PARAMS_BUFFER_H
 
 #include "OpenGLObjects/BUF.h"
-#include "shaderguipair.h"
+#include "cpugpupair.h"
 
 struct TerrainParamsData {
 	int octaveCount;
@@ -32,11 +32,11 @@ public:
 private:
 	BUF mBUF;
 
-	ShaderGUIPair<int> mOctaveCount;
-	ShaderGUIPair<float> mInitialAmplitude;
-	ShaderGUIPair<float> mAmplitudeDecay;
-	ShaderGUIPair<float> mSpreadFactor;
-	ShaderGUIPair<float> mRoughness;
+	CPUGPUPair<int> mOctaveCount;
+	CPUGPUPair<float> mInitialAmplitude;
+	CPUGPUPair<float> mAmplitudeDecay;
+	CPUGPUPair<float> mSpreadFactor;
+	CPUGPUPair<float> mRoughness;
 };
 
 #endif

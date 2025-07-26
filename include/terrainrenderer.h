@@ -16,6 +16,8 @@
 #include "imgui/imgui_impl_opengl3.h"
 #include "camera.h"
 #include <iostream>
+#include "cpugpupair.h"
+#include "intssbo.h"
 
 constexpr int ImageCount{ 3 };
 //template <int ImageCount>
@@ -55,6 +57,7 @@ public:
 		} }
 
 		, mWaterHeight{ waterHeight }
+		, mLowQualityPlaneStepSize{ -1 }
 	{
 		std::vector<float> vertexData{
 		-1, -1,
@@ -142,9 +145,20 @@ public:
 			}
 		}
 
+		// Set uniforms
 		mTerrainShader.use();
 		mTerrainShader.setMatrix4("view", camera.getViewMatrix());
 		mTerrainShader.setMatrix4("proj", camera.getProjectionMatrix());
+		mTerrainShader.setVector3("cameraPos", camera.getPosition());
+		if (mChunkWidth.hasDiff() || mIsFirstFrame) {
+			mChunkWidth.mGPU = mChunkWidth.mCPU;
+			mTerrainShader.setInt("chunkWidth", mChunkWidth.mCPU);
+		}
+		mLowQualityPlaneStepSize.mCPU = mLowQualityPlane.getStepSize();
+		if (mLowQualityPlaneStepSize.hasDiff() || mIsFirstFrame) {
+			mLowQualityPlaneStepSize.mGPU = mLowQualityPlaneStepSize.mCPU;
+			mTerrainShader.setFloat("lowQualityPlaneStepSize", mLowQualityPlaneStepSize.mCPU);
+		}
 		mWaterShader.use();
 		mWaterShader.setMatrix4("view", camera.getViewMatrix());
 		mWaterShader.setMatrix4("proj", camera.getProjectionMatrix());
@@ -153,33 +167,57 @@ public:
 			mImages[i].bindImage(i);
 		}
 
-		// For each chunk
- 		for (int x{ -mChunkCount / 2 }; x <= mChunkCount / 2; ++x) {
-			for (int z{ -mChunkCount / 2 }; z <= mChunkCount / 2; ++z) {
+		int oddChunkCount{ (mChunkCount.mCPU / 2) * 2 + 1 };
+		// Update chunk SSBOs
+		bool updatePositions{ mChunkCount.hasDiff() || mIsFirstFrame };
 
-				mTerrainShader.use();
-				glm::vec3 chunkPos{ getClosestWorldVertexPos(camera.getPosition()) - glm::vec3(x * mChunkWidth, 0, z * mChunkWidth) };
+		if (updatePositions)
+			mChunkCount.mGPU = mChunkCount.mCPU; // GPU means stored value, CPU means GUI value
+
+		std::vector<int> positions;
+		std::vector<int> visibleHighQualityChunkIndices;
+		std::vector<int> visibleLowQualityChunkIndices;
+
+		if (updatePositions)
+		positions.reserve(oddChunkCount * oddChunkCount * 2);
+		int i{ 0 };
+		for (int x{ -oddChunkCount / 2 }; x <= oddChunkCount / 2; ++x) {
+			for (int z{ -oddChunkCount / 2 }; z <= oddChunkCount / 2; ++z) {
+				glm::vec3 chunkPos{ camera.getPosition() - glm::vec3(x * mChunkWidth.mCPU, 0, z * mChunkWidth.mCPU) };
 				float chunkDist{ glm::length(chunkPos - camera.getPosition()) };
-				Plane& currPlane{ chunkDist > mVertexQualityDropoffDistance ? mLowQualityPlane : mHighQualityPlane };
+				bool isHighQuality{ chunkDist < mVertexQualityDropoffDistance };
+				if (updatePositions) {
+					positions.push_back(x);
+					positions.push_back(z);
+				}
 
-				mTerrainShader.setVector3("planePos", { chunkPos.x, 0, chunkPos.z });
-				mTerrainShader.setFloat("planeWorldWidth", mChunkWidth);
-
-				currPlane.useVertexArray();
-
-				int shellCount{ mArtisticParams.getShellCount() };
-
-				// glInstanceID is 1 greater than the shellIndex (base terrain is -1 shell index, first shell is 0 shell index)
-				glDrawElementsInstanced(GL_TRIANGLES, currPlane.getIndexCount(), GL_UNSIGNED_INT, 0, shellCount + 1); // Draw each shell plus the base terrain
-
-				mWaterShader.use();
-				mWaterShader.setVector3("planePos", { chunkPos.x, mWaterHeight, chunkPos.z });
-				mWaterShader.setFloat("planeWorldWidth", mChunkWidth);
-				glDrawElements(GL_TRIANGLES, currPlane.getIndexCount(), GL_UNSIGNED_INT, 0); // Draw each shell plus the base terrain
+				if (isHighQuality) {
+					visibleHighQualityChunkIndices.push_back(i);
+				}
+				else {
+					visibleLowQualityChunkIndices.push_back(i);
+				}
+				++i;
 			}
 		}
 
+		if (updatePositions)
+			mSSBOChunkPositions.UploadData(positions, GL_STATIC_DRAW);
+
+		// Draw
+		mTerrainShader.use();
+		int shellCount{ mArtisticParams.getShellCount() };
+
+		mSSBOChunkIndices.UploadData(visibleHighQualityChunkIndices, GL_STREAM_DRAW);
+		mHighQualityPlane.useVertexArray();
+		glDrawElementsInstanced(GL_TRIANGLES, mHighQualityPlane.getIndexCount(), GL_UNSIGNED_INT, 0, (shellCount + 1) * visibleHighQualityChunkIndices.size()); // Draw each shell plus the base terrain
+
+		mSSBOChunkIndices.UploadData(visibleLowQualityChunkIndices, GL_STREAM_DRAW);
+		mLowQualityPlane.useVertexArray();
+		glDrawElementsInstanced(GL_TRIANGLES, mHighQualityPlane.getIndexCount(), GL_UNSIGNED_INT, 0, (shellCount + 1) * visibleLowQualityChunkIndices.size()); // Draw each shell plus the base terrain
+
 		renderUI(displayDeltaTime);
+		mIsFirstFrame = false;
 	}
 
 	glm::vec3 getClosestWorldPixelPos(const glm::vec3 pos, int imageIndex) {
@@ -189,19 +227,17 @@ public:
 		return stepSizesAway * stepSize;
 	}
 
-	glm::vec3 getClosestWorldVertexPos(const glm::vec3 pos) {
-		float stepSize{ mLowQualityPlane.getStepSize() * mChunkWidth };
-		glm::vec3 stepSizesAway = pos / stepSize;
-		stepSizesAway = glm::vec3{ (int)stepSizesAway.x, (int)stepSizesAway.y, (int)stepSizesAway.z };
-		return stepSizesAway * stepSize;
-	}
-
 private:
 	// The chunk collection consists of a square of chunkCount * chunkCount chunks, each having a width of chunkWidth
 
 	// The chunks will go from high to low quality, while the far chunks will all be low quality?
-	int mChunkWidth;
-	int mChunkCount;
+	CPUGPUPair<int> mChunkWidth;
+	CPUGPUPair<float> mLowQualityPlaneStepSize;
+	bool mIsFirstFrame{ true };
+	CPUGPUPair<int> mChunkCount;
+
+	IntSSBO mSSBOChunkPositions{ 0 };
+	IntSSBO mSSBOChunkIndices{ 1 };
 
 	ArtisticParamsBuffer mArtisticParams;
 	TerrainParamsBuffer mTerrainParams;
@@ -240,8 +276,8 @@ private:
 		mTerrainParams.renderUI();
 
 		ImGui::Begin("Plane Chunking");
-		ImGui::DragInt("Width", &mChunkWidth, 1, 1, 100);
-		ImGui::DragInt("Count", &mChunkCount, 1, 1, 100);
+		ImGui::DragInt("Width", &mChunkWidth.mCPU, 1, 1, 100);
+		ImGui::DragInt("Count", &mChunkCount.mCPU, 1, 1, 100);
 		ImGui::DragInt("Low quality plane vertices", &mLowQualityPlaneVerticesPerEdge, 1, 2, 1000);
 		ImGui::DragInt("High quality plane quality scale", &mHighQualityPlaneVerticesPerEdgeScale, 1, 2, 1000);
 		ImGui::DragFloat("Vertex LOD dist", &mVertexQualityDropoffDistance, 1, 1, 1000);
