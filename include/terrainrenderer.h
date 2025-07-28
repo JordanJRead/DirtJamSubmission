@@ -17,7 +17,7 @@
 #include "camera.h"
 #include <iostream>
 
-constexpr int ImageCount{ 3 };
+constexpr int ImageCount{ 4 };
 //template <int ImageCount>
 
 class TerrainRenderer {
@@ -51,7 +51,8 @@ public:
 		, mImages{ {
 			{mImagePixelDims[0], mImageWorldSizes[0], screenWidth, screenHeight, getClosestWorldPixelPos(cameraPos, 0)},
 			{mImagePixelDims[1], mImageWorldSizes[1], screenWidth, screenHeight, getClosestWorldPixelPos(cameraPos, 1)},
-			{mImagePixelDims[2], mImageWorldSizes[2], screenWidth, screenHeight, getClosestWorldPixelPos(cameraPos, 2)}
+			{mImagePixelDims[2], mImageWorldSizes[2], screenWidth, screenHeight, getClosestWorldPixelPos(cameraPos, 2)},
+			{mImagePixelDims[3], mImageWorldSizes[3], screenWidth, screenHeight, getClosestWorldPixelPos(cameraPos, 3)}
 		} }
 
 		, mWaterHeight{ waterHeight }
@@ -107,7 +108,7 @@ public:
 			// Move images along with the player
 			glm::vec2 scaledCameraPos{ glm::vec2(camera.getPosition().x, camera.getPosition().z) / mArtisticParams.getTerrainScale() };
 			double cameraDistFromImageCenter{ glm::length(scaledCameraPos - mImageWorldPositions[i]) };
-			if (cameraDistFromImageCenter * 2 > 0.5 * mImageWorldSizes[i]) { // If near edge of image, update image
+			if (cameraDistFromImageCenter * 2 > 0.2 * mImageWorldSizes[i]) { // If near edge of image, update image
 				glm::vec3 pixelPosition{ getClosestWorldPixelPos(camera.getPosition() / mArtisticParams.getTerrainScale(), i)};
 				mImageWorldPositions[i] = glm::vec2(pixelPosition.x, pixelPosition.z);
 			}

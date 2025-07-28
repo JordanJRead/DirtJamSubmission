@@ -16,7 +16,7 @@ App::App(int screenWidth, int screenHeight, GLFWwindow* window)
 	, mWindow{ window }
 	, mScreenWidth{ screenWidth }
 	, mScreenHeight{ screenHeight }
-	, mTerrainRenderer{ screenWidth, screenHeight, mCamera.getPosition(), 16, 1, ArtisticParamsData{ 22, 0.02, 0.875, 20, 0.04, 100, 1, 0.2 }, TerrainParamsData{ 15, 80, 0.4, 2, 20 }, {7000, 5000, 5000}, {2, 11, 45}, std::array<glm::vec2, 3> {glm::vec2{0}, glm::vec2{0}, glm::vec2{0}}, 20, 6, 110, 8.3 }
+	, mTerrainRenderer{ screenWidth, screenHeight, mCamera.getPosition(), 16, 40, ArtisticParamsData{ 22, 0.02, 0.875, 12, 0.04, 100, 1, 0.2 }, TerrainParamsData{ 15, 80, 0.4, 2, 20 }, {2500, 2500, 2500, 2500}, {1, 4, 12, 36}, std::array<glm::vec2, 4> {glm::vec2{0}, glm::vec2{0}, glm::vec2{0}}, 20, 6, 110, 8.3 }
 {
 	glfwSetWindowUserPointer(mWindow, this);
 	glfwSetCursorPosCallback(mWindow, mouseCallback);

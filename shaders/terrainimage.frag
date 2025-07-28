@@ -136,11 +136,11 @@ vec3 getTerrainInfo(vec2 pos) {
 	vec3 mountain = perlin(pos * 0.2);
 	mountain.yz *= scale;
 	mountain.yz *= 0.2;
-
-	mountain.x *= mountain.x;
+	
 	mountain.yz = 2 * mountain.x * mountain.yz;
 	mountain.x *= mountain.x;
 	mountain.yz = 2 * mountain.x * mountain.yz;
+	mountain.x *= mountain.x;
 	mountain.x = mountain.x * 0.95 + 0.05;
 	mountain.yz = 0.9 * mountain.yz;
 

@@ -1,5 +1,6 @@
 #version 430 core
 #define PI 3.141592653589793238462
+#define IMAGECOUNT 4
 
 layout(location = 0) in vec2 vPos;
 
@@ -8,11 +9,11 @@ out vec3 viewPos;
 
 // Per app
 uniform int imageCount;
-uniform sampler2D images[3];
+uniform sampler2D images[IMAGECOUNT];
 
 // Per whenever they get changed
-uniform float imageScales[3];
-uniform vec2 imagePositions[3];
+uniform float imageScales[IMAGECOUNT];
+uniform vec2 imagePositions[IMAGECOUNT];
 
 layout(std140, binding = 1) uniform ArtisticParams {
 	uniform float terrainScale;
@@ -35,7 +36,7 @@ uniform vec3 planePos;
 out flat int shellIndex;
 
 vec3 getTerrainInfo(vec2 worldPos) {
-	for (int i = 0; i < 3; ++i) {
+	for (int i = 0; i < IMAGECOUNT; ++i) {
 		vec2 sampleCoord = ((worldPos / terrainScale - imagePositions[i]) / imageScales[i]) + vec2(0.5);
 		
 		if (!(sampleCoord.x > 1 || sampleCoord.x < 0 || sampleCoord.y > 1 || sampleCoord.y < 0)) {
