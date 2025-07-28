@@ -17,7 +17,8 @@ uniform vec2 imagePositions[IMAGECOUNT];
 
 layout(std140, binding = 1) uniform ArtisticParams {
 	uniform float terrainScale;
-	uniform float fogStrength;
+	uniform float maxViewDistance;
+	uniform float fogEncroach;
 	uniform float colorDotCutoff;
 	uniform int shellCount;
 	uniform float shellMaxHeight;

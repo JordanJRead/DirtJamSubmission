@@ -11,6 +11,7 @@
 #include <string_view>
 #include "artisticparamsbuffer.h"
 #include "terrainparamsbuffer.h"
+#include "waterparamsbuffer.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
@@ -23,7 +24,7 @@ constexpr int ImageCount{ 4 };
 class TerrainRenderer {
 public:
 	TerrainRenderer(int screenWidth, int screenHeight, const glm::vec3& cameraPos,
-		int chunkWidth, int chunkCount, const ArtisticParamsData& artistParams, const TerrainParamsData& terrainParams,
+		int chunkWidth, int chunkCount, const ArtisticParamsData& artistParams, const TerrainParamsData& terrainParams, const WaterParamsData& waterParams,
 		std::array<int, ImageCount> imagePixelDims, std::array<float, ImageCount> imageWorldSizes, std::array<glm::vec2, ImageCount> imageWorldPositions,
 		int lowQualityPlaneVerticesPerEdge, int highQualityPlaneVerticesPerEdgeScale, float vertexQualityDropoffDistance, float waterHeight)
 		: mChunkWidth{ chunkWidth }
@@ -31,6 +32,7 @@ public:
 		
 		, mArtisticParams{ artistParams }
 		, mTerrainParams{ terrainParams }
+		, mWaterParams{ waterParams }
 
 		, mLowQualityPlaneVerticesPerEdge{ lowQualityPlaneVerticesPerEdge }
 		, mHighQualityPlaneVerticesPerEdgeScale{ highQualityPlaneVerticesPerEdgeScale }
@@ -87,9 +89,10 @@ public:
 		}
 	}
 
-	void render(const Camera& camera, double displayDeltaTime) {
+	void render(const Camera& camera, double displayDeltaTime, float time) {
 		bool hasTerrainChanged{ mTerrainParams.updateGPU(false) };
 		mArtisticParams.updateGPU(false);
+		mWaterParams.updateGPU(false);
 		mTerrainShader.use();
 
 		// Update plane types
@@ -149,6 +152,7 @@ public:
 		mWaterShader.use();
 		mWaterShader.setMatrix4("view", camera.getViewMatrix());
 		mWaterShader.setMatrix4("proj", camera.getProjectionMatrix());
+		mWaterShader.setFloat("time", time);
 
 		for (int i{ 0 }; i < mImages.size(); ++i) {
 			mImages[i].bindImage(i);
@@ -172,11 +176,12 @@ public:
 
 				// glInstanceID is 1 greater than the shellIndex (base terrain is -1 shell index, first shell is 0 shell index)
 				glDrawElementsInstanced(GL_TRIANGLES, currPlane.getIndexCount(), GL_UNSIGNED_INT, 0, shellCount + 1); // Draw each shell plus the base terrain
+				// I could do each of the plane qualities in one instanced call, but for some reason it is slightly slower
 
-				//mWaterShader.use();
-				//mWaterShader.setVector3("planePos", { chunkPos.x, mWaterHeight, chunkPos.z });
-				//mWaterShader.setFloat("planeWorldWidth", mChunkWidth);
-				//glDrawElements(GL_TRIANGLES, currPlane.getIndexCount(), GL_UNSIGNED_INT, 0); // Draw each shell plus the base terrain
+				mWaterShader.use();
+				mWaterShader.setVector3("planePos", { chunkPos.x, mWaterHeight, chunkPos.z });
+				mWaterShader.setFloat("planeWorldWidth", mChunkWidth);
+				glDrawElements(GL_TRIANGLES, currPlane.getIndexCount(), GL_UNSIGNED_INT, 0); // Draw each shell plus the base terrain
 			}
 		}
 
@@ -206,6 +211,7 @@ private:
 
 	ArtisticParamsBuffer mArtisticParams;
 	TerrainParamsBuffer mTerrainParams;
+	WaterParamsBuffer mWaterParams;
 
 	std::array<int, ImageCount> mImagePixelDims;
 	std::array<float, ImageCount> mImageWorldSizes;
@@ -239,6 +245,7 @@ private:
 
 		mArtisticParams.renderUI();
 		mTerrainParams.renderUI();
+		mWaterParams.renderUI();
 
 		ImGui::Begin("Plane Chunking");
 		ImGui::DragInt("Width", &mChunkWidth, 1, 1, 100);

@@ -157,6 +157,7 @@
     <ClCompile Include="src\terrainimagegenerator.cpp" />
     <ClCompile Include="src\terrainparamsbuffer.cpp" />
     <ClCompile Include="src\vertexarray.cpp" />
+    <ClCompile Include="src\waterparamsbuffer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="libraries\glfw3dll.lib" />
@@ -187,6 +188,7 @@
     <ClInclude Include="include\terrainparamsbuffer.h" />
     <ClInclude Include="include\terrainrenderer.h" />
     <ClInclude Include="include\vertexarray.h" />
+    <ClInclude Include="include\waterparamsbuffer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

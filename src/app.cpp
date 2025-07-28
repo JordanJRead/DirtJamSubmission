@@ -8,15 +8,16 @@
 #include "imgui/imgui_impl_opengl3.h"
 #include "terrainparamsbuffer.h"
 #include "artisticparamsbuffer.h"
+#include "waterparamsbuffer.h"
 #include <array>
 #include "glm/glm.hpp"
 
 App::App(int screenWidth, int screenHeight, GLFWwindow* window)
-	: mCamera{ screenWidth, screenHeight }
+	: mCamera{ screenWidth, screenHeight, {0, 20, 0} }
 	, mWindow{ window }
 	, mScreenWidth{ screenWidth }
 	, mScreenHeight{ screenHeight }
-	, mTerrainRenderer{ screenWidth, screenHeight, mCamera.getPosition(), 16, 40, ArtisticParamsData{ 22, 0.02, 0.875, 12, 0.04, 100, 1, 0.2 }, TerrainParamsData{ 15, 80, 0.4, 2, 20 }, {2500, 2500, 2500, 2500}, {1, 4, 12, 36}, std::array<glm::vec2, 4> {glm::vec2{0}, glm::vec2{0}, glm::vec2{0}}, 20, 6, 110, 8.3 }
+	, mTerrainRenderer{ screenWidth, screenHeight, mCamera.getPosition(), 16, 40, ArtisticParamsData{ 22, 328, 68, 0.875, 12, 0.04, 100, 1, 0.2 }, TerrainParamsData{ 15, 80, 0.4, 2, 20 }, WaterParamsData{ 12, 1, 0.9, 1, 1.15, 1, 1.26 }, {2500, 2500, 2500, 2500}, {1, 4, 12, 36}, std::array<glm::vec2, 4> {glm::vec2{0}, glm::vec2{0}, glm::vec2{0}}, 20, 6, 110, 8.3 }
 {
 	glfwSetWindowUserPointer(mWindow, this);
 	glfwSetCursorPosCallback(mWindow, mouseCallback);
@@ -72,7 +73,7 @@ void App::loop() {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// Terrain
-		mTerrainRenderer.render(mCamera, displayDeltaTime);
+		mTerrainRenderer.render(mCamera, displayDeltaTime, (float)glfwGetTime());
 
 		glfwSwapBuffers(mWindow);
 		glfwPollEvents();

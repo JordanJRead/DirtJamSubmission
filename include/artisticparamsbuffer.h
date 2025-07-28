@@ -6,7 +6,8 @@
 
 struct ArtisticParamsData {
 	float terrainScale;
-	float fogStrength;
+	float maxViewDistance;
+	float fogEncroach;
 	float colorDotCutoff;
 	int shellCount;
 	float shellMaxHeight;
@@ -17,10 +18,11 @@ struct ArtisticParamsData {
 
 class ArtisticParamsBuffer {
 public:
-	ArtisticParamsBuffer(float terrainScale, float fogStrength, float colorDotCutoff, int shellCount, float shellMaxHeight, float shellDetail, float shellMaxCutoff, float shellBaseCutoff);
+	ArtisticParamsBuffer(float terrainScale, float maxViewDistance, float fogEncroach, float colorDotCutoff, int shellCount, float shellMaxHeight, float shellDetail, float shellMaxCutoff, float shellBaseCutoff);
 	ArtisticParamsBuffer(const ArtisticParamsData& data)
 		: mTerrainScale{ data.terrainScale }
-		, mFogStrength{ data.fogStrength }
+		, mMaxViewDistance{ data.maxViewDistance }
+		, mFogEncroach{ data.fogEncroach }
 		, mColorDotCutoff{ data.colorDotCutoff }
 		, mShellCount{ data.shellCount }
 		, mShellMaxHeight{ data.shellMaxHeight }
@@ -29,7 +31,7 @@ public:
 		, mShellBaseCutoff{ data.shellBaseCutoff }
 	{
 		glBindBuffer(GL_UNIFORM_BUFFER, mBUF);
-		glBufferData(GL_UNIFORM_BUFFER, sizeof(int) + 7 * sizeof(float), nullptr, GL_STATIC_DRAW);
+		glBufferData(GL_UNIFORM_BUFFER, sizeof(int) + 8 * sizeof(float), nullptr, GL_STATIC_DRAW);
 		glBindBufferBase(GL_UNIFORM_BUFFER, 1, mBUF);
 
 		updateGPU(true);
@@ -40,36 +42,18 @@ public:
 	float getTerrainScale() const { return mTerrainScale.mGUI; }
 	void lowerShellCount(int newShellCount) {
 		glBindBuffer(GL_UNIFORM_BUFFER, mBUF);
-		int offset{ 0 };
+		int offset{ 4 * sizeof(float) };
 
-		int size{ sizeof(float) };
-		offset += size;
-
-		size = sizeof(float);
-		offset += size;
-
-		size = sizeof(float);
-		offset += size;
-
-		size = sizeof(int);
+		int size = sizeof(int);
 		mShellCount.mShader = mShellCount.mGUI;
 		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &newShellCount);
 	}
 
 	void fixShellCount() {
 		glBindBuffer(GL_UNIFORM_BUFFER, mBUF);
-		int offset{ 0 };
+		int offset{ 4 * sizeof(float) };
 
-		int size{ sizeof(float) };
-		offset += size;
-
-		size = sizeof(float);
-		offset += size;
-
-		size = sizeof(float);
-		offset += size;
-
-		size = sizeof(int);
+		int size = sizeof(int);
 		mShellCount.mShader = mShellCount.mGUI;
 		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mShellCount.mShader);
 	}
@@ -77,7 +61,8 @@ public:
 private:
 	BUF mBUF;
 	ShaderGUIPair<float> mTerrainScale;
-	ShaderGUIPair<float> mFogStrength;
+	ShaderGUIPair<float> mMaxViewDistance;
+	ShaderGUIPair<float> mFogEncroach;
 	ShaderGUIPair<float> mColorDotCutoff;
 	ShaderGUIPair<int> mShellCount;
 	ShaderGUIPair<float> mShellMaxHeight;

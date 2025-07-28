@@ -2,9 +2,10 @@
 #include "glad/glad.h"
 #include <imgui.h>
 
-ArtisticParamsBuffer::ArtisticParamsBuffer(float terrainScale, float maxFogDist, float colorDotCutoff, int shellCount, float shellMaxHeight, float shellDetail, float shellMaxCutoff, float shellBaseCutoff)
+ArtisticParamsBuffer::ArtisticParamsBuffer(float terrainScale, float maxFogDist, float fogEncroach, float colorDotCutoff, int shellCount, float shellMaxHeight, float shellDetail, float shellMaxCutoff, float shellBaseCutoff)
 	: mTerrainScale{ terrainScale }
-	, mFogStrength{ maxFogDist }
+	, mMaxViewDistance{ maxFogDist }
+	, mFogEncroach{ fogEncroach }
 	, mColorDotCutoff{ colorDotCutoff }
 	, mShellCount{ shellCount }
 	, mShellMaxHeight{ shellMaxHeight }
@@ -13,25 +14,17 @@ ArtisticParamsBuffer::ArtisticParamsBuffer(float terrainScale, float maxFogDist,
 	, mShellBaseCutoff{ shellBaseCutoff }
 {
 	glBindBuffer(GL_UNIFORM_BUFFER, mBUF);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(int) + 7 * sizeof(float), nullptr, GL_STATIC_DRAW);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(int) + 8 * sizeof(float), nullptr, GL_STATIC_DRAW);
 	glBindBufferBase(GL_UNIFORM_BUFFER, 1, mBUF);
 
 	updateGPU(true);
 }
 
-//ArtisticParamsBuffer::ArtisticParamsBuffer(const ArtisticParamsBuffer& other)
-//	: mExtrudePerShell{ other.mExtrudePerShell }
-//	, mMaxFogDist{ other.mMaxFogDist }
-//	, mColorDotCutoff{ other.mColorDotCutoff }
-//	, mShellTexelScale{ other.mShellTexelScale }
-//	, mShellCutoffLossPerShell{ other.mShellCutoffLossPerShell }
-//	, mShellCutoffBase{ other.mShellCutoffBase }
-//	, mMaxShellCount{ other.mMaxShellCount } { }
-
 void ArtisticParamsBuffer::renderUI() {
 	ImGui::Begin("Artistic Parameters");
 	ImGui::DragFloat("Terrain scale", &mTerrainScale.mGUI);
-	ImGui::DragFloat("Fog strength", &mFogStrength.mGUI, 0.0001, 0, 1);
+	ImGui::DragFloat("View distance", &mMaxViewDistance.mGUI, 1, 0, 1000);
+	ImGui::DragFloat("Fog encroachment", &mFogEncroach.mGUI, 1, 0, int(mMaxViewDistance.mGUI));
 	ImGui::DragFloat("Color dot cutoff", &mColorDotCutoff.mGUI, 0.005, 0, 1);
 	ImGui::DragInt("Shell count", &mShellCount.mGUI, 0.1, 0, 256);
 	ImGui::DragFloat("Shell max height", &mShellMaxHeight.mGUI, 0.001, 0, 10);
@@ -65,9 +58,16 @@ void ArtisticParamsBuffer::updateGPU(bool force) {
 	offset += size;
 
 	size = sizeof(float);
-	if (mFogStrength.hasDiff() || force) {
-		mFogStrength.mShader = mFogStrength.mGUI;
-		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mFogStrength.mShader);
+	if (mMaxViewDistance.hasDiff() || force) {
+		mMaxViewDistance.mShader = mMaxViewDistance.mGUI;
+		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mMaxViewDistance.mShader);
+	}
+	offset += size;
+
+	size = sizeof(float);
+	if (mFogEncroach.hasDiff() || force) {
+		mFogEncroach.mShader = mFogEncroach.mGUI;
+		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mFogEncroach.mShader);
 	}
 	offset += size;
 

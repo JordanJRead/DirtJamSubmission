@@ -16,7 +16,8 @@ uniform vec2 imagePositions[IMAGECOUNT];
 
 layout(std140, binding = 1) uniform ArtisticParams {
 	uniform float terrainScale;
-	uniform float fogStrength;
+	uniform float maxViewDistance;
+	uniform float fogEncroach;
 	uniform float colorDotCutoff;
 	uniform int shellCount;
 	uniform float shellMaxHeight;
@@ -95,10 +96,10 @@ void main() {
 	vec3 normal = normalize(vec3(-terrainInfo.y, 1, -terrainInfo.z));
 
 	// Color
-	vec3 dirtAlbedo = vec3(0.61, 0.46, 0.33);
+	vec3 dirtAlbedo = vec3(0.61, 0.46, 0.33) * 0.7;
 	//vec3 dirtAlbedo = vec3(0.35, 0.35, 0.35);
 
-	vec3 grassAlbedo = vec3(0, 0.6, 0);
+	vec3 grassAlbedo = vec3(0, 0.5, 0);
 	//vec3 grassAlbedo = vec3(1, 1, 1);
 
 	// Lighting
@@ -113,32 +114,37 @@ void main() {
 
 	bool shallowEnough = diffuse >= colorDotCutoff;
 
+	// Fog
+	float distFromCamera = length(viewPos);
+	float fogStart = maxViewDistance - fogEncroach;
+	float fogStrength;
+
+	if (distFromCamera < fogStart)
+		fogStrength = 0;
+	else if (distFromCamera > maxViewDistance)
+		fogStrength = 1;
+	else
+		fogStrength = (distFromCamera - fogStart) / fogEncroach;
+
+	/// Coloring
+	vec3 albedo;
+
+	// Regular
 	if (shellIndex < 0) {
-		// Blend color
-		vec3 albedo = dirtAlbedo + easeInExpo(diffuse) * (grassAlbedo - dirtAlbedo);
-		albedo = dirtAlbedo + (shallowEnough ? 1 : 0) * (grassAlbedo - dirtAlbedo);
-
-		float distFromCamera = length(viewPos);
-		float visibility = exp(-distFromCamera * fogStrength);
-
-		vec3 preFogColor = (diffuse + ambient) * albedo;
-		vec3 postFogColor = visibility * preFogColor + (1 - visibility) * vec3(0.5, 0.5, 0.5);
-		FragColor = vec4(postFogColor, 1);
+		albedo = shallowEnough ? grassAlbedo : dirtAlbedo;
 	}
+
+	// Shell
 	else {
 		float shellProgress = float(shellIndex + 1) / shellCount;
 		float shellCutoff = shellBaseCutoff + shellProgress * (shellMaxCutoff - shellBaseCutoff);
 		if (!shallowEnough || randNum < shellCutoff)
 			discard;
 			
-		// Blend color
-		vec3 albedo = grassAlbedo + grassAlbedo * shellProgress * 0.5;
-
-		float distFromCamera = length(viewPos);
-		float visibility = exp(-distFromCamera * fogStrength);
-
-		vec3 preFogColor = (diffuse + ambient) * albedo;
-		vec3 postFogColor = visibility * preFogColor + (1 - visibility) * vec3(0.5, 0.5, 0.5);
-		FragColor = vec4(postFogColor, 1);
+		albedo = grassAlbedo + grassAlbedo * shellProgress * 0.1;
 	}
+
+	vec3 preFogColor = (diffuse + ambient) * albedo;
+	vec3 postFogColor = (1 - fogStrength) * preFogColor + fogStrength * vec3(0.5, 0.5, 0.5);
+	FragColor = vec4(postFogColor, 1);
 }
