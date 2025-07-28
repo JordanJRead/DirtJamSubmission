@@ -172,10 +172,10 @@ public:
 				// glInstanceID is 1 greater than the shellIndex (base terrain is -1 shell index, first shell is 0 shell index)
 				glDrawElementsInstanced(GL_TRIANGLES, currPlane.getIndexCount(), GL_UNSIGNED_INT, 0, shellCount + 1); // Draw each shell plus the base terrain
 
-				mWaterShader.use();
-				mWaterShader.setVector3("planePos", { chunkPos.x, mWaterHeight, chunkPos.z });
-				mWaterShader.setFloat("planeWorldWidth", mChunkWidth);
-				glDrawElements(GL_TRIANGLES, currPlane.getIndexCount(), GL_UNSIGNED_INT, 0); // Draw each shell plus the base terrain
+				//mWaterShader.use();
+				//mWaterShader.setVector3("planePos", { chunkPos.x, mWaterHeight, chunkPos.z });
+				//mWaterShader.setFloat("planeWorldWidth", mChunkWidth);
+				//glDrawElements(GL_TRIANGLES, currPlane.getIndexCount(), GL_UNSIGNED_INT, 0); // Draw each shell plus the base terrain
 			}
 		}
 
