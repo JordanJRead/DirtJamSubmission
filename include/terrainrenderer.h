@@ -179,7 +179,9 @@ public:
 		std::vector<int> visibleLowQualityChunkIndices;
 
 		if (updatePositions)
-		positions.reserve(oddChunkCount * oddChunkCount * 2);
+			positions.reserve(oddChunkCount * oddChunkCount * 2);
+		visibleHighQualityChunkIndices.reserve(oddChunkCount * oddChunkCount);
+		visibleLowQualityChunkIndices.reserve(oddChunkCount * oddChunkCount);
 		int i{ 0 };
 		for (int x{ -oddChunkCount / 2 }; x <= oddChunkCount / 2; ++x) {
 			for (int z{ -oddChunkCount / 2 }; z <= oddChunkCount / 2; ++z) {
@@ -212,9 +214,11 @@ public:
 		mHighQualityPlane.useVertexArray();
 		glDrawElementsInstanced(GL_TRIANGLES, mHighQualityPlane.getIndexCount(), GL_UNSIGNED_INT, 0, (shellCount + 1) * visibleHighQualityChunkIndices.size()); // Draw each shell plus the base terrain
 
-		mSSBOChunkIndices.UploadData(visibleLowQualityChunkIndices, GL_STREAM_DRAW);
-		mLowQualityPlane.useVertexArray();
-		glDrawElementsInstanced(GL_TRIANGLES, mHighQualityPlane.getIndexCount(), GL_UNSIGNED_INT, 0, (shellCount + 1) * visibleLowQualityChunkIndices.size()); // Draw each shell plus the base terrain
+		if (visibleLowQualityChunkIndices.size() != 0) {
+			mSSBOChunkIndices.UploadData(visibleLowQualityChunkIndices, GL_STREAM_DRAW);
+			mLowQualityPlane.useVertexArray();
+			glDrawElementsInstanced(GL_TRIANGLES, mHighQualityPlane.getIndexCount(), GL_UNSIGNED_INT, 0, (shellCount + 1) * visibleLowQualityChunkIndices.size()); // Draw each shell plus the base terrain
+		}
 
 		renderUI(displayDeltaTime);
 		mIsFirstFrame = false;
