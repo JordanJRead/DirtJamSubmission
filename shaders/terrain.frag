@@ -88,7 +88,7 @@ int getClosestInt(float x) {
 }
 
 void main() {
-
+	
 	// Terrain
 	vec3 terrainInfo = getTerrainInfo(flatWorldPos);
 	vec3 normal = normalize(vec3(-terrainInfo.y, 1, -terrainInfo.z));

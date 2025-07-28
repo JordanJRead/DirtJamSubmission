@@ -211,13 +211,15 @@ public:
 		int shellCount{ mArtisticParams.getShellCount() };
 
 		mSSBOChunkIndices.UploadData(visibleHighQualityChunkIndices, GL_STREAM_DRAW);
+		mTerrainShader.setInt("instanceCount", (shellCount + 1)* visibleHighQualityChunkIndices.size());
 		mHighQualityPlane.useVertexArray();
 		glDrawElementsInstanced(GL_TRIANGLES, mHighQualityPlane.getIndexCount(), GL_UNSIGNED_INT, 0, (shellCount + 1) * visibleHighQualityChunkIndices.size()); // Draw each shell plus the base terrain
 
 		if (visibleLowQualityChunkIndices.size() != 0) {
 			mSSBOChunkIndices.UploadData(visibleLowQualityChunkIndices, GL_STREAM_DRAW);
+			mTerrainShader.setInt("instanceCount", (shellCount + 1)* visibleLowQualityChunkIndices.size());
 			mLowQualityPlane.useVertexArray();
-			glDrawElementsInstanced(GL_TRIANGLES, mHighQualityPlane.getIndexCount(), GL_UNSIGNED_INT, 0, (shellCount + 1) * visibleLowQualityChunkIndices.size()); // Draw each shell plus the base terrain
+			glDrawElementsInstanced(GL_TRIANGLES, mLowQualityPlane.getIndexCount(), GL_UNSIGNED_INT, 0, (shellCount + 1) * visibleLowQualityChunkIndices.size()); // Draw each shell plus the base terrain
 		}
 
 		renderUI(displayDeltaTime);

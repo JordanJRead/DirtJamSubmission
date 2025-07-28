@@ -42,6 +42,7 @@ uniform vec2 imagePositions[3];
 uniform vec3 cameraPos;
 uniform mat4 view;
 uniform mat4 proj;
+uniform int instanceCount;
 
 
 vec3 getTerrainInfo(vec2 worldPos) {
@@ -65,7 +66,9 @@ vec3 getClosestWorldVertexPos(vec3 pos) {
 }
 
 void main() {
-	int chunkIndex = visibleChunkIndices[gl_InstanceID / (shellCount + 1)];
+	
+	int chunkCount = instanceCount / (shellCount + 1);
+	int chunkIndex = visibleChunkIndices[gl_InstanceID % chunkCount];
 	int posIndex = chunkIndex * 2;
 	int x = ssboChunkXZ[posIndex];
 	int z = ssboChunkXZ[posIndex + 1];
@@ -78,7 +81,7 @@ void main() {
 	vec3 normal = normalize(vec3(-terrainInfo.y, 1, -terrainInfo.z));
 	worldPos.y += terrainInfo.x;
 
-	shellIndex = gl_InstanceID % (shellCount + 1) - 1;
+	shellIndex = gl_InstanceID / chunkCount - 1;
 	if (shellIndex >= 0) {
 		float shellProgress = float(shellIndex + 1) / shellCount;
 		worldPos.xyz += normal * shellProgress * shellMaxHeight;
