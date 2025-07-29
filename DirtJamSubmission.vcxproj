@@ -144,6 +144,7 @@
     <ClCompile Include="src\app.cpp" />
     <ClCompile Include="src\artisticparamsbuffer.cpp" />
     <ClCompile Include="src\camera.cpp" />
+    <ClCompile Include="src\cubemap.cpp" />
     <ClCompile Include="src\glad.c" />
     <ClCompile Include="src\imgui.cpp" />
     <ClCompile Include="src\imgui_demo.cpp" />
@@ -169,6 +170,8 @@
     <ClInclude Include="include\app.h" />
     <ClInclude Include="include\artisticparamsbuffer.h" />
     <ClInclude Include="include\camera.h" />
+    <ClInclude Include="include\cubemap.h" />
+    <ClInclude Include="include\cubevertices.h" />
     <ClInclude Include="include\imgui\imconfig.h" />
     <ClInclude Include="include\imgui\imgui.h" />
     <ClInclude Include="include\imgui\imgui_impl_glfw.h" />

@@ -17,6 +17,8 @@
 #include "imgui/imgui_impl_opengl3.h"
 #include "camera.h"
 #include <iostream>
+#include "cubemap.h"
+#include "cubevertices.h"
 
 constexpr int ImageCount{ 4 };
 //template <int ImageCount>
@@ -40,9 +42,10 @@ public:
 		, mLowQualityPlane{ mLowQualityPlaneVerticesPerEdge }
 		, mHighQualityPlane{ mHighQualityPlaneVerticesPerEdgeScale }
 
-		, mTerrainImageShader{ "shaders/terrainimage.vert", "shaders/terrainimage.frag" }
-		, mTerrainShader{ "shaders/terrain.vert", "shaders/terrain.frag" }
-		, mWaterShader{ "shaders/water.vert", "shaders/water.frag" }
+		, mTerrainImageShader{ "assets/shaders/terrainimage.vert", "assets/shaders/terrainimage.frag" }
+		, mTerrainShader{ "assets/shaders/terrain.vert", "assets/shaders/terrain.frag" }
+		, mWaterShader{ "assets/shaders/water.vert", "assets/shaders/water.frag" }
+		, mSkyboxShader{ "assets/shaders/skybox.vert", "assets/shaders/skybox.frag" }
 
 		, mImageWorldPositions{ imageWorldPositions }
 		, mImagePixelDims{ imagePixelDims }
@@ -58,6 +61,15 @@ public:
 		} }
 
 		, mWaterHeight{ waterHeight }
+
+		, mSkybox{ {
+				"assets/AllSkyFree/Epic_GloriousPink/Epic_GloriousPink_Cam_2_Left+X.png",
+				"assets/AllSkyFree/Epic_GloriousPink/Epic_GloriousPink_Cam_3_Right-X.png",
+				"assets/AllSkyFree/Epic_GloriousPink/Epic_GloriousPink_Cam_4_Up+Y.png",
+				"assets/AllSkyFree/Epic_GloriousPink/Epic_GloriousPink_Cam_5_Down-Y.png",
+				"assets/AllSkyFree/Epic_GloriousPink/Epic_GloriousPink_Cam_0_Front+Z.png",
+				"assets/AllSkyFree/Epic_GloriousPink/Epic_GloriousPink_Cam_1_Back-Z.png"
+			} }
 	{
 		std::vector<float> vertexData{
 		-1, -1,
@@ -87,6 +99,9 @@ public:
 			mImages[i].updateTexture(mScreenQuad, mTerrainImageShader);
 			mTerrainShader.use();
 		}
+
+		mSkyboxShader.use();
+		mSkyboxShader.setInt("skybox", 0);
 	}
 
 	void render(const Camera& camera, double displayDeltaTime, float time) {
@@ -145,6 +160,16 @@ public:
 				mTerrainShader.use();
 			}
 		}
+
+		// Render skybox
+		mSkyboxShader.use();
+		mSkyboxShader.setMatrix4("view", camera.getViewMatrix());
+		mSkyboxShader.setMatrix4("proj", camera.getProjectionMatrix());
+		mSkybox.bindTexture(0);
+		mCubeVertices.useVertexArray();
+		glDisable(GL_DEPTH_TEST);
+		glDrawElements(GL_TRIANGLES, mCubeVertices.getIndexCount(), GL_UNSIGNED_INT, 0);
+		glEnable(GL_DEPTH_TEST);
 
 		mTerrainShader.use();
 		mTerrainShader.setMatrix4("view", camera.getViewMatrix());
@@ -225,6 +250,9 @@ private:
 	Shader mTerrainImageShader;
 	Shader mTerrainShader;
 	Shader mWaterShader;
+	Shader mSkyboxShader;
+	Cubemap mSkybox;
+	CubeVertices mCubeVertices;
 
 	Plane mLowQualityPlane;
 	Plane mHighQualityPlane;
