@@ -34,17 +34,17 @@ uniform float waterHeight;
 // Per plane
 in flat int shellIndex;
 
-vec3 getTerrainInfo(vec2 worldPos) {
+vec4 getTerrainInfo(vec2 worldPos) {
 	for (int i = 0; i < IMAGECOUNT; ++i) {
 		vec2 sampleCoord = ((worldPos / terrainScale - imagePositions[i]) / imageScales[i]) + vec2(0.5);
 		
 		if (!(sampleCoord.x > 1 || sampleCoord.x < 0 || sampleCoord.y > 1 || sampleCoord.y < 0)) {
-			vec3 terrainInfo = texture(images[i], sampleCoord).rgb;
+			vec4 terrainInfo = texture(images[i], sampleCoord);
 			terrainInfo.yz /= imageScales[i] * terrainScale;
 			return terrainInfo;
 		}
 	}
-	return vec3(0, 0, 0);
+	return vec4(0, 0, 0, 0);
 }
 
 
@@ -94,11 +94,77 @@ int getClosestInt(float x) {
 	return int(round(x) + 0.1 * (x < 0 ? -1 : 1));
 }
 
+vec2 randUnitVector(float randNum) {
+	float theta = 2 * PI * randNum;
+	return normalize(vec2(cos(theta), sin(theta)));
+}
+
+vec2 quinticInterpolation(vec2 t) {
+	return t * t * t * (t * (t * vec2(6) - vec2(15)) + vec2(10));
+}
+
+vec2 quinticDerivative(vec2 t) {
+	return vec2(30) * t * t * (t * (t - vec2(2)) + vec2(1));
+}
+
+vec3 perlin(vec2 pos, int reroll = 0) {
+	int x0 = getClosestInt(floor(pos.x));
+	int x1 = getClosestInt(ceil(pos.x));
+	int y0 = getClosestInt(floor(pos.y));
+	int y1 = getClosestInt(ceil(pos.y));
+
+	vec2 p00 = vec2(x0, y0);
+	
+	vec2 relPoint =  pos - p00;
+
+	uint rui00 = rand(labelPoint(x0, y0));
+	uint rui10 = rand(labelPoint(x1, y0));
+	uint rui01 = rand(labelPoint(x0, y1));
+	uint rui11 = rand(labelPoint(x1, y1));
+
+	for (int i = 0; i < reroll; ++i) {
+		rui00 = rand(rui00);
+		rui10 = rand(rui10);
+		rui01 = rand(rui01);
+		rui11 = rand(rui11);
+	}
+
+	float r00 = randToFloat(rui00);
+	float r10 = randToFloat(rui10);
+	float r01 = randToFloat(rui01);
+	float r11 = randToFloat(rui11);
+
+	vec2 g00 = randUnitVector(r00);
+	vec2 g10 = randUnitVector(r10);
+	vec2 g01 = randUnitVector(r01);
+	vec2 g11 = randUnitVector(r11);
+
+	vec2 v00 = relPoint;
+	vec2 v11 = relPoint - vec2(1, 1);
+	vec2 v10 = relPoint - vec2(1, 0);
+	vec2 v01 = relPoint - vec2(0, 1);
+	
+	float d00 = dot(v00, g00);
+	float d10 = dot(v10, g10);
+	float d01 = dot(v01, g01);
+	float d11 = dot(v11, g11);
+
+	// From https://iquilezles.org/articles/gradientnoise/ and Acerola's github
+	vec2 u = quinticInterpolation(relPoint);
+	vec2 du = quinticDerivative(relPoint);
+	float noise = d00 + u.x * (d10 - d00) + u.y * (d01 - d00) + u.x * u.y * (d00 - d10 - d01 + d11);
+	noise = noise / 1.414 + 0.5;
+	vec2 tangents = g00 + u.x * (g10 - g00) + u.y * (g01 - g00) + u.x * u.y * (g00 - g10 - g01 + g11) + du * (u.yx * (d00 - d10 - d01 + d11) + vec2(d10, d01) - d00);
+	tangents /= 1.414;
+
+	return vec3(noise, tangents.x, tangents.y);
+}
+
 void main() {
 
 	// Terrain
 	vec2 flatWorldPos = groundWorldPos.xz;
-	vec3 terrainInfo = getTerrainInfo(flatWorldPos);
+	vec4 terrainInfo = getTerrainInfo(flatWorldPos);
 	vec3 normal = normalize(vec3(-terrainInfo.y, 1, -terrainInfo.z));
 
 	// Color
@@ -106,11 +172,11 @@ void main() {
 	vec3 wetDirtAlbedo = vec3(0.61, 0.46, 0.33) * 0.4;
 	vec3 grassAlbedo = vec3(0, 0.5, 0);
 	vec3 snowAlbedo = vec3(1, 1, 1);
-	vec3 rockAlbedo = vec3(0.4, 0.4, 0.4);
+	vec3 rockAlbedo = vec3(0.4, 0.4, 0.4) * 1.5;
 
 	float tall = (groundWorldPos.y - 40) / 10.0;
 	tall = clamp(tall, 0.0, 1.0);
-	vec3 groundAlbedo = dirtAlbedo;// * (1 - tall) + tall * rockAlbedo;
+	vec3 groundAlbedo = dirtAlbedo * (1 - terrainInfo.a) + terrainInfo.a * rockAlbedo;
 	
 	vec3 shellAlbedo = grassAlbedo;// * (1 - tall) + tall * snowAlbedo;
 

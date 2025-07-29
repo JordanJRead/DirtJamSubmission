@@ -37,23 +37,23 @@ uniform float planeWorldWidth;
 uniform vec3 planePos;
 out flat int shellIndex;
 
-vec3 getTerrainInfo(vec2 worldPos) {
+vec4 getTerrainInfo(vec2 worldPos) {
 	for (int i = 0; i < IMAGECOUNT; ++i) {
 		vec2 sampleCoord = ((worldPos / terrainScale - imagePositions[i]) / imageScales[i]) + vec2(0.5);
 		
 		if (!(sampleCoord.x > 1 || sampleCoord.x < 0 || sampleCoord.y > 1 || sampleCoord.y < 0)) {
-			vec3 terrainInfo = texture(images[i], sampleCoord).rgb;
+			vec4 terrainInfo = texture(images[i], sampleCoord);
 			terrainInfo.yz /= imageScales[i] * terrainScale;
 			return terrainInfo;
 		}
 	}
-	return vec3(0, 0, 0);
+	return vec4(0, 0, 0, 0);
 }
 
 void main() {
 	vec4 worldPos = vec4(vPos.x * planeWorldWidth + planePos.x, planePos.y, vPos.y * planeWorldWidth + planePos.z, 1);
 	vec2 flatWorldPos = worldPos.xz;
-	vec3 terrainInfo = getTerrainInfo(flatWorldPos);
+	vec4 terrainInfo = getTerrainInfo(flatWorldPos);
 	vec3 normal = normalize(vec3(-terrainInfo.y, 1, -terrainInfo.z));
 	worldPos.y += terrainInfo.x;
 	

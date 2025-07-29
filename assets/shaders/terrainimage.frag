@@ -132,7 +132,7 @@ float damp(float x, float rough) {
 	return -2 * rough * x / (x * x + rough) / (x * x + rough);
 }
 
-vec3 getTerrainInfo(vec2 pos) {
+vec4 getTerrainInfo(vec2 pos) {
 	vec3 mountain = perlin(pos * 0.2);
 	mountain.yz *= scale;
 	mountain.yz *= 0.2;
@@ -181,9 +181,9 @@ vec3 getTerrainInfo(vec2 pos) {
 
 	finalOutput.x += offset.x;
 	finalOutput.yz += offset.yz;
-	return finalOutput;
+	return vec4(finalOutput, mountain);
 }
 
 void main() {
-	OutTerrainData = vec4(getTerrainInfo(latticePos), 1);
+	OutTerrainData = getTerrainInfo(latticePos);
 }
