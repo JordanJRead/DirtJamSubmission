@@ -61,14 +61,14 @@ vec3 getWaterHeight(vec2 pos) {
 		float randNum = randToFloat(rand(i));
 		vec2 waterDir = randUnitVector(randNum);
 		//waterInfo.x += amplitude * sin(dot(waterDir, pos) * freq + time * speed);
-		waterInfo.x += amplitude * exp(sin(dot(waterDir, pos) * freq + time * speed)) - 1.4;
+		waterInfo.x += amplitude * (exp(sin(dot(waterDir, pos) * freq + time * speed)) - 1.4);
 		waterInfo.yz += amplitude * exp(sin(dot(waterDir, pos) * freq + time * speed)) * cos(dot(waterDir, pos) * freq + time * speed) * freq * waterDir;
 
 		amplitude *= amplitudeMult;
 		freq *= freqMult;
 		speed *= speedMult;
 	}
-	return waterInfo / amplitudeSum;
+	return waterInfo / amplitudeSum * initialAmplitude;
 }
 
 void main() {
@@ -78,9 +78,10 @@ void main() {
 	vec3 normal = normalize(vec3(-waterInfo.y, 1, -waterInfo.z));
 	vec3 lightDir = normalize(vec3(0, 1, 0));
 	float diffuse = max(0, dot(lightDir, normal));
+	//diffuse = 1;
 	float ambient = 0;
 
-	vec3 albedo = vec3(0, 0.2, 0.7);
+	vec3 albedo = vec3(0, 0.1, 0.5);
 
 	float distFromCamera = length(viewPos);
 	float fogStart = maxViewDistance - fogEncroach;

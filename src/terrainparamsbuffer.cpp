@@ -20,7 +20,7 @@ void TerrainParamsBuffer::renderUI() {
 	ImGui::DragFloat("Amplitude", &mInitialAmplitude.mGUI, 0.7, 0, 500);
 	ImGui::DragFloat("Amplitude decay", &mAmplitudeDecay.mGUI, 0.0005, 0, 100);
 	ImGui::DragFloat("Spread factor", &mSpreadFactor.mGUI, 0.001, 0, 100);
-	ImGui::DragFloat("Roughness", &mRoughness.mGUI, 1);
+	//ImGui::DragFloat("Roughness", &mRoughness.mGUI, 1);
 	ImGui::End();
 }
 

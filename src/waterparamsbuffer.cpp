@@ -4,13 +4,13 @@
 
 void WaterParamsBuffer::renderUI() {
 	ImGui::Begin("Water Parameters");
-	ImGui::DragInt("Wave count", &mWaveCount.mGUI, 0.1);
-	ImGui::DragFloat("Initial amplitude", &mInitialAmplitude.mGUI, 0.01);
-	ImGui::DragFloat("Amplitude multiplier", &mAmplitudeMult.mGUI, 0.01);
-	ImGui::DragFloat("Initial frequency", &mInitialFreq.mGUI, 0.01);
-	ImGui::DragFloat("Frequency multiplier", &mFreqMult.mGUI, 0.01);
-	ImGui::DragFloat("Initial speed", &mInitialSpeed.mGUI, 0.01);
-	ImGui::DragFloat("Speed multiplier", &mSpeedMult.mGUI, 0.01);
+	ImGui::DragInt("Wave count", &mWaveCount.mGUI, 0.1, 1, 100);
+	ImGui::DragFloat("Initial amplitude", &mInitialAmplitude.mGUI, 0.005, 0.01, 1);
+	ImGui::DragFloat("Amplitude multiplier", &mAmplitudeMult.mGUI, 0.001, 0, 1);
+	ImGui::DragFloat("Initial frequency", &mInitialFreq.mGUI, 0.01, 0, 5);
+	ImGui::DragFloat("Frequency multiplier", &mFreqMult.mGUI, 0.01, 0, 1.5);
+	ImGui::DragFloat("Initial speed", &mInitialSpeed.mGUI, 0.02, 0, 20);
+	ImGui::DragFloat("Speed multiplier", &mSpeedMult.mGUI, 0.007, 0, 2);
 	ImGui::End();
 }
 

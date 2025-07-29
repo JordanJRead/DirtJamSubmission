@@ -54,6 +54,7 @@ vec3 getWaterHeight(vec2 pos) {
 		amplitudeSum += amplitude;
 		float randNum = randToFloat(rand(i));
 		vec2 waterDir = randUnitVector(randNum);
+		//waterInfo.x += amplitude * sin(dot(waterDir, pos) * freq + time * speed);
 		waterInfo.x += amplitude * (exp(sin(dot(waterDir, pos) * freq + time * speed)) - 1.4);
 		waterInfo.yz += amplitude * exp(sin(dot(waterDir, pos) * freq + time * speed)) * cos(dot(waterDir, pos) * freq + time * speed) * freq * waterDir;
 
@@ -61,7 +62,7 @@ vec3 getWaterHeight(vec2 pos) {
 		freq *= freqMult;
 		speed *= speedMult;
 	}
-	return waterInfo / amplitudeSum;
+	return waterInfo / amplitudeSum * initialAmplitude;
 }
 
 void main() {
@@ -72,5 +73,6 @@ void main() {
 
 	worldPos3 = worldPos.xyz;
 	viewPos = (view * worldPos).xyz;
-	gl_Position = proj * vec4(viewPos, 1);
+	//worldPos.y = planePos.y;
+	gl_Position = proj * vec4((view * worldPos).xyz, 1);
 }
