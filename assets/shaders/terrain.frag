@@ -113,9 +113,11 @@ void main() {
 	float ambient = 0;
 
 	// Texturing
-	int x = getClosestInt(floor((flatWorldPos * shellDetail).x));
-	int y = getClosestInt(floor((flatWorldPos * shellDetail).y));
+	vec2 shellCoord = flatWorldPos * shellDetail;
+	int x = getClosestInt(floor(shellCoord.x));
+	int y = getClosestInt(floor(shellCoord.y));
 	float randNum = randToFloat(rand(labelPoint(x, y)));
+	vec2 normGrass = shellCoord - vec2(x, y);
 
 	bool shallowEnough = diffuse >= colorDotCutoff;
 
@@ -144,7 +146,8 @@ void main() {
 	else {
 		float shellProgress = float(shellIndex + 1) / shellCount;
 		float shellCutoff = shellBaseCutoff + shellProgress * (shellMaxCutoff - shellBaseCutoff);
-		if (!shallowEnough || randNum < shellCutoff || underwater)
+		float circleDist = (1 - shellProgress) / 2.0;
+		if (!shallowEnough || randNum < shellCutoff || underwater)// || length(vec2(0.5, 0.5) - normGrass) > circleDist) // If doing cones
 			discard;
 			
 		albedo = grassAlbedo + grassAlbedo * shellProgress * 0.1;
