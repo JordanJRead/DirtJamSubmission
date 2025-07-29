@@ -28,6 +28,9 @@ public:
 	}
 	void renderUI();
 	bool updateGPU(bool force);
+	int getOctaveCount() { return mOctaveCount.mShader; }
+	float getInitialAmplitude() { return mInitialAmplitude.mShader; }
+	float getAmplitudeDecay() { return mAmplitudeDecay.mShader; }
 
 private:
 	BUF mBUF;

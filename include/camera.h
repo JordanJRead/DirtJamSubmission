@@ -13,6 +13,7 @@ public:
 	glm::mat4 getViewMatrix() const;
 	glm::mat4 getProjectionMatrix() const;
 	glm::vec3 getPosition() const { return mPosition; }
+	glm::vec3 getForward() const;
 
 private:
 	float mPitch{ 0 }; // In radians
@@ -24,9 +25,6 @@ private:
 	float mPrevX{ 0 };
 	float mPrevY{ 0 };
 	bool isFirstLook{ true };
-
-private:
-	glm::vec3 getForward() const;
 };
 
 #endif

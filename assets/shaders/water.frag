@@ -98,7 +98,7 @@ void main() {
 	vec3 litAlbedo = (diffuse + ambient) * albedo;
 	
 	vec3 viewDir = normalize(cameraPos - worldPos3);
-	float fresnel = pow(1 - dot(viewDir, normal), 5.0);
+	float fresnel = pow(1 - dot(viewDir, normal), 3.0);
 	vec3 reflectDir = normalize(reflect(-viewDir, normal));
 	vec3 reflectColor = texture(skybox, reflectDir).xyz;
 

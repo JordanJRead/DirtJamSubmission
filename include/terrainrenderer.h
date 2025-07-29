@@ -19,6 +19,7 @@
 #include <iostream>
 #include "cubemap.h"
 #include "cubevertices.h"
+#include <array>
 
 constexpr int ImageCount{ 4 };
 //template <int ImageCount>
@@ -62,7 +63,7 @@ public:
 
 		, mWaterHeight{ waterHeight }
 
-		, mSkybox{ {
+		, mDaySkybox{ {
 				"assets/AllSkyFree/Epic_GloriousPink/Epic_GloriousPink_Cam_2_Left+X.png",
 				"assets/AllSkyFree/Epic_GloriousPink/Epic_GloriousPink_Cam_3_Right-X.png",
 				"assets/AllSkyFree/Epic_GloriousPink/Epic_GloriousPink_Cam_4_Up+Y.png",
@@ -75,6 +76,14 @@ public:
 				//"assets/AllSkyFree/Epic_BlueSunset/Epic_BlueSunset_Cam_5_Down-Y.png",
 				//"assets/AllSkyFree/Epic_BlueSunset/Epic_BlueSunset_Cam_0_Front+Z.png",
 				//"assets/AllSkyFree/Epic_BlueSunset/Epic_BlueSunset_Cam_1_Back-Z.png"
+			} }
+		, mNightSkybox{ {
+				"assets/AllSkyFree/Night MoonBurst/Night Moon Burst_Cam_2_Left+X.png",
+				"assets/AllSkyFree/Night MoonBurst/Night Moon Burst_Cam_3_Right-X.png",
+				"assets/AllSkyFree/Night MoonBurst/Night Moon Burst_Cam_4_Up+Y.png",
+				"assets/AllSkyFree/Night MoonBurst/Night Moon Burst_Cam_5_Down-Y.png",
+				"assets/AllSkyFree/Night MoonBurst/Night Moon Burst_Cam_0_Front+Z.png",
+				"assets/AllSkyFree/Night MoonBurst/Night Moon Burst_Cam_1_Back-Z.png"
 			} }
 	{
 		std::vector<float> vertexData{
@@ -174,7 +183,7 @@ public:
 		mSkyboxShader.use();
 		mSkyboxShader.setMatrix4("view", camera.getViewMatrix());
 		mSkyboxShader.setMatrix4("proj", camera.getProjectionMatrix());
-		mSkybox.bindTexture(7);
+		mDaySkybox.bindTexture(7);
 		mCubeVertices.useVertexArray();
 		glDisable(GL_DEPTH_TEST);
 		glDrawElements(GL_TRIANGLES, mCubeVertices.getIndexCount(), GL_UNSIGNED_INT, 0);
@@ -194,30 +203,63 @@ public:
 			mImages[i].bindImage(i);
 		}
 
+		float maxChunkHeight{ getMaxHeight() };
+		std::cout << camera.getPosition().y << "\n";
+
+		float minChunkHeight{ getMinHeight() };
+
 		// For each chunk
  		for (int x{ -mChunkCount / 2 }; x <= mChunkCount / 2; ++x) {
 			for (int z{ -mChunkCount / 2 }; z <= mChunkCount / 2; ++z) {
 
 				mTerrainShader.use();
 				glm::vec3 chunkPos{ getClosestWorldVertexPos(camera.getPosition()) - glm::vec3(x * mChunkWidth, 0, z * mChunkWidth) };
-				float chunkDist{ glm::length(chunkPos - camera.getPosition()) };
-				Plane& currPlane{ chunkDist > mVertexQualityDropoffDistance ? mLowQualityPlane : mHighQualityPlane };
 
-				mTerrainShader.setVector3("planePos", { chunkPos.x, 0, chunkPos.z });
-				mTerrainShader.setFloat("planeWorldWidth", mChunkWidth);
+				// Frustum culling
+				std::array<float, 2> xVals{ chunkPos.x - mChunkWidth / 2.0, chunkPos.x + mChunkWidth / 2.0 };
+				std::array<float, 2> yVals{ minChunkHeight - mChunkWidth / 2.0, maxChunkHeight + mChunkWidth / 2.0 };
+				std::array<float, 2> zVals{ chunkPos.z - mChunkWidth / 2.0, chunkPos.z + mChunkWidth / 2.0 };
 
-				currPlane.useVertexArray();
+				bool isVisible{ false };
+				glm::vec3 cameraForward{ camera.getForward() };
+				cameraForward = {0, 1, 0};
+				for (float x : xVals) {
+					for (float y : yVals) {
+						for (float z : zVals) {
+							glm::vec3 corner{ x, y, z };
+							glm::vec3 viewDir{ glm::normalize(corner - camera.getPosition()) };
+							if (glm::dot(viewDir, cameraForward) > 0) {
+								isVisible = true;
+								break;
+							}
+						}
+						if (isVisible)
+							break;
+					}
+					if (isVisible)
+						break;
+				}
 
-				int shellCount{ mArtisticParams.getShellCount() };
+				if (isVisible) {
+					float chunkDist{ glm::length(chunkPos - camera.getPosition()) };
+					Plane& currPlane{ chunkDist > mVertexQualityDropoffDistance ? mLowQualityPlane : mHighQualityPlane };
 
-				// glInstanceID is 1 greater than the shellIndex (base terrain is -1 shell index, first shell is 0 shell index)
-				glDrawElementsInstanced(GL_TRIANGLES, currPlane.getIndexCount(), GL_UNSIGNED_INT, 0, shellCount + 1); // Draw each shell plus the base terrain
-				// I could do each of the plane qualities in one instanced call, but for some reason it is slightly slower
+					mTerrainShader.setVector3("planePos", { chunkPos.x, 0, chunkPos.z });
+					mTerrainShader.setFloat("planeWorldWidth", mChunkWidth);
 
-				mWaterShader.use();
-				mWaterShader.setVector3("planePos", { chunkPos.x, mWaterHeight, chunkPos.z });
-				mWaterShader.setFloat("planeWorldWidth", mChunkWidth);
-				glDrawElements(GL_TRIANGLES, currPlane.getIndexCount(), GL_UNSIGNED_INT, 0); // Draw each shell plus the base terrain
+					currPlane.useVertexArray();
+
+					int shellCount{ mArtisticParams.getShellCount() };
+
+					// glInstanceID is 1 greater than the shellIndex (base terrain is -1 shell index, first shell is 0 shell index)
+					glDrawElementsInstanced(GL_TRIANGLES, currPlane.getIndexCount(), GL_UNSIGNED_INT, 0, shellCount + 1); // Draw each shell plus the base terrain
+					// I could do each of the plane qualities in one instanced call, but for some reason it is slightly slower
+
+					mWaterShader.use();
+					mWaterShader.setVector3("planePos", { chunkPos.x, mWaterHeight, chunkPos.z });
+					mWaterShader.setFloat("planeWorldWidth", mChunkWidth);
+					glDrawElements(GL_TRIANGLES, currPlane.getIndexCount(), GL_UNSIGNED_INT, 0); // Draw each shell plus the base terrain
+				}
 			}
 		}
 
@@ -262,7 +304,8 @@ private:
 	Shader mTerrainShader;
 	Shader mWaterShader;
 	Shader mSkyboxShader;
-	Cubemap mSkybox;
+	Cubemap mDaySkybox;
+	Cubemap mNightSkybox;
 	CubeVertices mCubeVertices;
 
 	Plane mLowQualityPlane;
@@ -305,6 +348,70 @@ private:
 
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+	}
+
+	float getMaxHeight() {
+		glm::vec3 mountain = { 1, 0, 0 };
+
+		mountain.x *= mountain.x;
+		mountain.x *= mountain.x;
+		mountain.x = mountain.x * 0.95 + 0.05;
+
+		glm::vec3 offset = { 1, 0, 0 };
+
+		offset.x = offset.x < 0.5 ? (16 * offset.x * offset.x * offset.x * offset.x * offset.x) : 1 - pow(-2 * offset.x + 2, 5.0) / 2.0;
+
+		offset *= 20;
+
+		glm::vec3 terrainInfo = { 0, 0, 0 };
+
+		float amplitude = mTerrainParams.getInitialAmplitude();
+
+		for (int i{ 0 }; i < mTerrainParams.getOctaveCount(); ++i) {
+			glm::vec3 perlinData = { 1, 0, 0 };
+
+			terrainInfo.x += amplitude * perlinData.x;
+
+			amplitude *= mTerrainParams.getAmplitudeDecay();
+		}
+
+		glm::vec3 finalOutput = { 0, 0, 0 };
+		finalOutput.x = terrainInfo.x * mountain.x;
+
+		finalOutput.x += offset.x;
+		return finalOutput.x;
+	}
+
+	float getMinHeight() {
+		glm::vec3 mountain = { 0, 0, 0 };
+
+		mountain.x *= mountain.x;
+		mountain.x *= mountain.x;
+		mountain.x = mountain.x * 0.95 + 0.05;
+
+		glm::vec3 offset = { 0, 0, 0 };
+
+		offset.x = offset.x < 0.5 ? (16 * offset.x * offset.x * offset.x * offset.x * offset.x) : 1 - pow(-2 * offset.x + 2, 5.0) / 2.0;
+
+		offset *= 20;
+
+		glm::vec3 terrainInfo = { 0, 0, 0 };
+
+		float amplitude = mTerrainParams.getInitialAmplitude();
+
+		for (int i{ 0 }; i < mTerrainParams.getOctaveCount(); ++i) {
+			glm::vec3 perlinData = { 0, 0, 0 };
+
+			terrainInfo.x += amplitude * perlinData.x;
+
+			amplitude *= mTerrainParams.getAmplitudeDecay();
+		}
+
+		glm::vec3 finalOutput = { 0, 0, 0 };
+		finalOutput.x = terrainInfo.x * mountain.x;
+
+		finalOutput.x += offset.x;
+		return finalOutput.x;
 	}
 };
 
