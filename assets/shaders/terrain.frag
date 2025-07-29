@@ -3,7 +3,8 @@
 #define IMAGECOUNT 4
 
 in vec3 viewPos;
-in vec3 worldPos3;
+in vec3 groundWorldPos;
+in vec3 shellWorldPos;
 out vec4 FragColor;
 
 // Per app probably
@@ -96,16 +97,21 @@ int getClosestInt(float x) {
 void main() {
 
 	// Terrain
-	vec2 flatWorldPos = worldPos3.xz;
+	vec2 flatWorldPos = groundWorldPos.xz;
 	vec3 terrainInfo = getTerrainInfo(flatWorldPos);
 	vec3 normal = normalize(vec3(-terrainInfo.y, 1, -terrainInfo.z));
 
 	// Color
 	vec3 dirtAlbedo = vec3(0.61, 0.46, 0.33) * 0.7;
-	//vec3 dirtAlbedo = vec3(0.35, 0.35, 0.35);
-
 	vec3 grassAlbedo = vec3(0, 0.5, 0);
-	//vec3 grassAlbedo = vec3(1, 1, 1);
+	vec3 snowAlbedo = vec3(1, 1, 1);
+	vec3 rockAlbedo = vec3(0.4, 0.4, 0.4);
+
+	float tall = (groundWorldPos.y - 40) / 10.0;
+	tall = clamp(tall, 0.0, 1.0);
+	vec3 groundAlbedo = dirtAlbedo;// * (1 - tall) + tall * rockAlbedo;
+	
+	vec3 shellAlbedo = grassAlbedo;// * (1 - tall) + tall * snowAlbedo;
 
 	// Lighting
 	vec3 lightDir = normalize(vec3(0, 1, 0));
@@ -137,9 +143,9 @@ void main() {
 	vec3 albedo;
 
 	// Regular
-	bool underwater = worldPos3.y - 0.2 < waterHeight;
+	bool underwater = groundWorldPos.y - 0.2 < waterHeight;
 	if (shellIndex < 0) {
-		albedo = shallowEnough && !underwater ? grassAlbedo : dirtAlbedo;
+		albedo = shallowEnough && !underwater ? shellAlbedo : groundAlbedo;
 	}
 
 	// Shell
@@ -150,11 +156,11 @@ void main() {
 		if (!shallowEnough || randNum < shellCutoff || underwater)// || length(vec2(0.5, 0.5) - normGrass) > circleDist) // If doing cones
 			discard;
 			
-		albedo = grassAlbedo + grassAlbedo * shellProgress * 0.1;
+		albedo = shellAlbedo + shellAlbedo * shellProgress * 0.1;
 	}
 
 	vec3 litAlbedo = (diffuse + ambient) * albedo;
-	vec3 skyboxSample = worldPos3 - cameraPos;
+	vec3 skyboxSample = shellWorldPos - cameraPos;
 	vec3 finalColor = (1 - fogStrength) * litAlbedo + fogStrength * texture(skybox, skyboxSample).xyz;
 	FragColor = vec4(finalColor, 1);
 }
