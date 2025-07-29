@@ -103,6 +103,7 @@ void main() {
 
 	// Color
 	vec3 dirtAlbedo = vec3(0.61, 0.46, 0.33) * 0.7;
+	vec3 wetDirtAlbedo = vec3(0.61, 0.46, 0.33) * 0.4;
 	vec3 grassAlbedo = vec3(0, 0.5, 0);
 	vec3 snowAlbedo = vec3(1, 1, 1);
 	vec3 rockAlbedo = vec3(0.4, 0.4, 0.4);
@@ -125,6 +126,11 @@ void main() {
 	float randNum = randToFloat(rand(labelPoint(x, y)));
 	vec2 normGrass = shellCoord - vec2(x, y);
 
+	float wetHeight = 0.4;
+	float distAboveWater = groundWorldPos.y - waterHeight;
+	float wet =  1 - (distAboveWater / wetHeight);
+	wet = clamp(wet, 0.0, 1.0);
+
 	bool shallowEnough = diffuse >= colorDotCutoff;
 
 	// Fog
@@ -143,9 +149,12 @@ void main() {
 	vec3 albedo;
 
 	// Regular
-	bool underwater = groundWorldPos.y - 0.2 < waterHeight;
 	if (shellIndex < 0) {
-		albedo = shallowEnough && !underwater ? shellAlbedo : groundAlbedo;
+		if (wet == 0)
+			albedo = shallowEnough ? shellAlbedo : groundAlbedo;
+		else {
+			albedo = dirtAlbedo * (1 - wet) + wetDirtAlbedo * wet;
+		}
 	}
 
 	// Shell
@@ -153,7 +162,7 @@ void main() {
 		float shellProgress = float(shellIndex + 1) / shellCount;
 		float shellCutoff = shellBaseCutoff + shellProgress * (shellMaxCutoff - shellBaseCutoff);
 		float circleDist = (1 - shellProgress) / 2.0;
-		if (!shallowEnough || randNum < shellCutoff || underwater)// || length(vec2(0.5, 0.5) - normGrass) > circleDist) // If doing cones
+		if (!shallowEnough || randNum < shellCutoff || wet > 0)// || length(vec2(0.5, 0.5) - normGrass) > circleDist) // If doing cones
 			discard;
 			
 		albedo = shellAlbedo + shellAlbedo * shellProgress * 0.1;
