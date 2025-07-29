@@ -193,6 +193,7 @@ public:
 		mTerrainShader.setMatrix4("view", camera.getViewMatrix());
 		mTerrainShader.setMatrix4("proj", camera.getProjectionMatrix());
 		mTerrainShader.setVector3("cameraPos", camera.getPosition());
+		mTerrainShader.setFloat("waterHeight", mWaterHeight);
 		mWaterShader.use();
 		mWaterShader.setMatrix4("view", camera.getViewMatrix());
 		mWaterShader.setMatrix4("proj", camera.getProjectionMatrix());
@@ -204,7 +205,6 @@ public:
 		}
 
 		float maxChunkHeight{ getMaxHeight() };
-		std::cout << camera.getPosition().y << "\n";
 
 		float minChunkHeight{ getMinHeight() };
 

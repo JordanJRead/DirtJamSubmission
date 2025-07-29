@@ -28,6 +28,8 @@ layout(std140, binding = 1) uniform ArtisticParams {
 	uniform float shellBaseCutoff;
 };
 
+uniform float waterHeight;
+
 // Per plane
 in flat int shellIndex;
 
@@ -133,15 +135,16 @@ void main() {
 	vec3 albedo;
 
 	// Regular
+	bool underwater = worldPos3.y - 0.2 < waterHeight;
 	if (shellIndex < 0) {
-		albedo = shallowEnough ? grassAlbedo : dirtAlbedo;
+		albedo = shallowEnough && !underwater ? grassAlbedo : dirtAlbedo;
 	}
 
 	// Shell
 	else {
 		float shellProgress = float(shellIndex + 1) / shellCount;
 		float shellCutoff = shellBaseCutoff + shellProgress * (shellMaxCutoff - shellBaseCutoff);
-		if (!shallowEnough || randNum < shellCutoff)
+		if (!shallowEnough || randNum < shellCutoff || underwater)
 			discard;
 			
 		albedo = grassAlbedo + grassAlbedo * shellProgress * 0.1;
