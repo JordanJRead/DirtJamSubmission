@@ -3,7 +3,7 @@
 
 layout(location = 0) in vec2 vPos;
 
-out vec2 flatWorldPos;
+out vec3 worldPos3;
 out vec3 viewPos;
 
 layout(std140, binding = 2) uniform WaterParams {
@@ -48,25 +48,29 @@ vec3 getWaterHeight(vec2 pos) {
 	float freq = initialFreq;
 	float speed = initialSpeed;
 
+	float amplitudeSum = 0;
+
 	for (int i = 0; i < waveCount; ++i) {
+		amplitudeSum += amplitude;
 		float randNum = randToFloat(rand(i));
 		vec2 waterDir = randUnitVector(randNum);
-		waterInfo.x += amplitude * sin(dot(waterDir, pos) * freq + time * speed);
-		waterInfo.yz += amplitude * cos(dot(waterDir, pos) * freq + time * speed) * freq * waterDir;
+		waterInfo.x += amplitude * (exp(sin(dot(waterDir, pos) * freq + time * speed)) - 1.4);
+		waterInfo.yz += amplitude * exp(sin(dot(waterDir, pos) * freq + time * speed)) * cos(dot(waterDir, pos) * freq + time * speed) * freq * waterDir;
 
 		amplitude *= amplitudeMult;
 		freq *= freqMult;
 		speed *= speedMult;
 	}
-	return waterInfo / waveCount;
+	return waterInfo / amplitudeSum;
 }
 
 void main() {
 	vec4 worldPos = vec4(vPos.x * planeWorldWidth + planePos.x, planePos.y, vPos.y * planeWorldWidth + planePos.z, 1);
-	flatWorldPos = worldPos.xz;
+	vec2 flatWorldPos = worldPos.xz;
 	vec3 waterInfo = getWaterHeight(flatWorldPos);
 	worldPos.y += waterInfo.x;
 
+	worldPos3 = worldPos.xyz;
 	viewPos = (view * worldPos).xyz;
 	gl_Position = proj * vec4(viewPos, 1);
 }

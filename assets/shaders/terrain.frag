@@ -2,13 +2,15 @@
 #define PI 3.141592653589793238462
 #define IMAGECOUNT 4
 
-in vec2 flatWorldPos;
 in vec3 viewPos;
+in vec3 worldPos3;
 out vec4 FragColor;
 
 // Per app probably
 uniform int imageCount;
 uniform sampler2D images[IMAGECOUNT];
+uniform samplerCube skybox;
+uniform vec3 cameraPos;
 
 // Per whenever they get changed
 uniform float imageScales[IMAGECOUNT];
@@ -92,6 +94,7 @@ int getClosestInt(float x) {
 void main() {
 
 	// Terrain
+	vec2 flatWorldPos = worldPos3.xz;
 	vec3 terrainInfo = getTerrainInfo(flatWorldPos);
 	vec3 normal = normalize(vec3(-terrainInfo.y, 1, -terrainInfo.z));
 
@@ -144,6 +147,8 @@ void main() {
 		albedo = grassAlbedo + grassAlbedo * shellProgress * 0.1;
 	}
 
-	vec4 color = vec4((diffuse + ambient) * albedo, 1 - fogStrength);
-	FragColor = vec4(color);
+	vec3 litAlbedo = (diffuse + ambient) * albedo;
+	vec3 skyboxSample = worldPos3 - cameraPos;
+	vec3 finalColor = (1 - fogStrength) * litAlbedo + fogStrength * texture(skybox, skyboxSample).xyz;
+	FragColor = vec4(finalColor, 1);
 }

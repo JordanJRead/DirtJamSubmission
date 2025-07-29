@@ -4,8 +4,8 @@
 
 layout(location = 0) in vec2 vPos;
 
-out vec2 flatWorldPos;
 out vec3 viewPos;
+out vec3 worldPos3;
 
 // Per app
 uniform int imageCount;
@@ -51,7 +51,7 @@ vec3 getTerrainInfo(vec2 worldPos) {
 
 void main() {
 	vec4 worldPos = vec4(vPos.x * planeWorldWidth + planePos.x, planePos.y, vPos.y * planeWorldWidth + planePos.z, 1);
-	flatWorldPos = worldPos.xz;
+	vec2 flatWorldPos = worldPos.xz;
 	vec3 terrainInfo = getTerrainInfo(flatWorldPos);
 	vec3 normal = normalize(vec3(-terrainInfo.y, 1, -terrainInfo.z));
 	worldPos.y += terrainInfo.x;
@@ -61,7 +61,8 @@ void main() {
 		float shellProgress = float(shellIndex + 1) / shellCount;
 		worldPos.xyz += normal * shellProgress * shellMaxHeight;
 	}
-
+	
+	worldPos3 = worldPos.xyz;
 	viewPos = (view * worldPos).xyz;
 	gl_Position = proj * vec4(viewPos, 1);
 }

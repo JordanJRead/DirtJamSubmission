@@ -63,12 +63,18 @@ public:
 		, mWaterHeight{ waterHeight }
 
 		, mSkybox{ {
-				"assets/AllSkyFree/Epic_GloriousPink/Epic_GloriousPink_Cam_2_Left+X.png",
-				"assets/AllSkyFree/Epic_GloriousPink/Epic_GloriousPink_Cam_3_Right-X.png",
-				"assets/AllSkyFree/Epic_GloriousPink/Epic_GloriousPink_Cam_4_Up+Y.png",
-				"assets/AllSkyFree/Epic_GloriousPink/Epic_GloriousPink_Cam_5_Down-Y.png",
-				"assets/AllSkyFree/Epic_GloriousPink/Epic_GloriousPink_Cam_0_Front+Z.png",
-				"assets/AllSkyFree/Epic_GloriousPink/Epic_GloriousPink_Cam_1_Back-Z.png"
+				//"assets/AllSkyFree/Epic_GloriousPink/Epic_GloriousPink_Cam_2_Left+X.png",
+				//"assets/AllSkyFree/Epic_GloriousPink/Epic_GloriousPink_Cam_3_Right-X.png",
+				//"assets/AllSkyFree/Epic_GloriousPink/Epic_GloriousPink_Cam_4_Up+Y.png",
+				//"assets/AllSkyFree/Epic_GloriousPink/Epic_GloriousPink_Cam_5_Down-Y.png",
+				//"assets/AllSkyFree/Epic_GloriousPink/Epic_GloriousPink_Cam_0_Front+Z.png",
+				//"assets/AllSkyFree/Epic_GloriousPink/Epic_GloriousPink_Cam_1_Back-Z.png"
+				"assets/AllSkyFree/Epic_BlueSunset/Epic_BlueSunset_Cam_2_Left+X.png",
+				"assets/AllSkyFree/Epic_BlueSunset/Epic_BlueSunset_Cam_3_Right-X.png",
+				"assets/AllSkyFree/Epic_BlueSunset/Epic_BlueSunset_Cam_4_Up+Y.png",
+				"assets/AllSkyFree/Epic_BlueSunset/Epic_BlueSunset_Cam_5_Down-Y.png",
+				"assets/AllSkyFree/Epic_BlueSunset/Epic_BlueSunset_Cam_0_Front+Z.png",
+				"assets/AllSkyFree/Epic_BlueSunset/Epic_BlueSunset_Cam_1_Back-Z.png"
 			} }
 	{
 		std::vector<float> vertexData{
@@ -89,7 +95,10 @@ public:
 		mScreenQuad.create(vertexData, indices, attribs);
 
 		// Set shader uniforms
+		mWaterShader.use();
+		mWaterShader.setInt("skybox", 7);
 		mTerrainShader.use();
+		mTerrainShader.setInt("skybox", 7);
 		mTerrainShader.setInt("imageCount", ImageCount);
 		for (int i{ 0 }; i < ImageCount; ++i) {
 			std::string indexString{ std::to_string(i) };
@@ -101,7 +110,7 @@ public:
 		}
 
 		mSkyboxShader.use();
-		mSkyboxShader.setInt("skybox", 0);
+		mSkyboxShader.setInt("skybox", 7);
 	}
 
 	void render(const Camera& camera, double displayDeltaTime, float time) {
@@ -165,7 +174,7 @@ public:
 		mSkyboxShader.use();
 		mSkyboxShader.setMatrix4("view", camera.getViewMatrix());
 		mSkyboxShader.setMatrix4("proj", camera.getProjectionMatrix());
-		mSkybox.bindTexture(0);
+		mSkybox.bindTexture(7);
 		mCubeVertices.useVertexArray();
 		glDisable(GL_DEPTH_TEST);
 		glDrawElements(GL_TRIANGLES, mCubeVertices.getIndexCount(), GL_UNSIGNED_INT, 0);
@@ -174,9 +183,11 @@ public:
 		mTerrainShader.use();
 		mTerrainShader.setMatrix4("view", camera.getViewMatrix());
 		mTerrainShader.setMatrix4("proj", camera.getProjectionMatrix());
+		mTerrainShader.setVector3("cameraPos", camera.getPosition());
 		mWaterShader.use();
 		mWaterShader.setMatrix4("view", camera.getViewMatrix());
 		mWaterShader.setMatrix4("proj", camera.getProjectionMatrix());
+		mWaterShader.setVector3("cameraPos", camera.getPosition());
 		mWaterShader.setFloat("time", time);
 
 		for (int i{ 0 }; i < mImages.size(); ++i) {

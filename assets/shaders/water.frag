@@ -1,11 +1,13 @@
 #version 430 core
 #define PI 3.141592653589793238462
 
-in vec2 flatWorldPos;
+in vec3 worldPos3;
 in vec3 viewPos;
 out vec4 FragColor;
 
 uniform float time;
+uniform samplerCube skybox;
+uniform vec3 cameraPos;
 
 layout(std140, binding = 1) uniform ArtisticParams {
 	uniform float terrainScale;
@@ -52,21 +54,26 @@ vec3 getWaterHeight(vec2 pos) {
 	float freq = initialFreq;
 	float speed = initialSpeed;
 
+	float amplitudeSum = 0;
+
 	for (int i = 0; i < waveCount; ++i) {
+		amplitudeSum += amplitude;
 		float randNum = randToFloat(rand(i));
 		vec2 waterDir = randUnitVector(randNum);
-		waterInfo.x += amplitude * sin(dot(waterDir, pos) * freq + time * speed);
-		waterInfo.yz += amplitude * cos(dot(waterDir, pos) * freq + time * speed) * freq * waterDir;
+		//waterInfo.x += amplitude * sin(dot(waterDir, pos) * freq + time * speed);
+		waterInfo.x += amplitude * exp(sin(dot(waterDir, pos) * freq + time * speed)) - 1.4;
+		waterInfo.yz += amplitude * exp(sin(dot(waterDir, pos) * freq + time * speed)) * cos(dot(waterDir, pos) * freq + time * speed) * freq * waterDir;
 
 		amplitude *= amplitudeMult;
 		freq *= freqMult;
 		speed *= speedMult;
 	}
-	return waterInfo / waveCount;
+	return waterInfo / amplitudeSum;
 }
 
 void main() {
 	// Lighting
+	vec2 flatWorldPos = worldPos3.xz;
 	vec3 waterInfo = getWaterHeight(flatWorldPos);
 	vec3 normal = normalize(vec3(-waterInfo.y, 1, -waterInfo.z));
 	vec3 lightDir = normalize(vec3(0, 1, 0));
@@ -85,8 +92,19 @@ void main() {
 		fogStrength = 1;
 	else
 		fogStrength = (distFromCamera - fogStart) / fogEncroach;
+		
+	vec3 skyboxSample = worldPos3 - cameraPos;
+	vec3 litAlbedo = (diffuse + ambient) * albedo;
+	
+	vec3 viewDir = normalize(cameraPos - worldPos3);
+	float fresnel = pow(1 - dot(viewDir, normal), 5.0);
+	vec3 reflectDir = normalize(reflect(-viewDir, normal));
+	vec3 reflectColor = texture(skybox, reflectDir).xyz;
 
-	vec3 preFogColor = (diffuse + ambient) * albedo;
-	vec3 postFogColor = (1 - fogStrength) * preFogColor + fogStrength * vec3(0.5, 0.5, 0.5);
-	FragColor = vec4(postFogColor, 1);
+	fresnel = clamp(fresnel, 0.0, 1.0);
+	litAlbedo = fresnel * reflectColor + (1 - fresnel) * litAlbedo;
+
+	vec3 finalColor = (1 - fogStrength) * litAlbedo + fogStrength * texture(skybox, skyboxSample).xyz;
+
+	FragColor = vec4(finalColor, 1);
 }
