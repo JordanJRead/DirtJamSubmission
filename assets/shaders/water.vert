@@ -15,7 +15,7 @@ layout(std140, binding = 2) uniform WaterParams {
 	uniform float initialSpeed;
 	uniform float speedMult;
 	uniform float specExp;
-	uniform vec3 sunColor;
+	uniform vec3 sunColour;
 };
 
 // Per frame

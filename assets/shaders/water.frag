@@ -3,7 +3,7 @@
 
 in vec3 worldPos3;
 in vec3 viewPos;
-out vec4 FragColor;
+out vec4 FragColour;
 
 uniform float time;
 uniform samplerCube skybox;
@@ -31,15 +31,15 @@ layout(std140, binding = 2) uniform WaterParams {
 	uniform float initialSpeed;
 	uniform float speedMult;
 	uniform float specExp;
-	uniform vec3 sunColor;
+	uniform vec3 sunColour;
 };
 
 layout(std140, binding = 3) uniform Colours {
-	uniform vec3 dirtColor;
-	uniform vec3 mountainColor;
-	uniform vec3 grassColor;
-	uniform vec3 snowColor;
-	uniform vec3 waterColor;
+	uniform vec3 dirtColour;
+	uniform vec3 mountainColour;
+	uniform vec3 grassColour;
+	uniform vec3 snowColour;
+	uniform vec3 waterColour;
 };
 
 uint rand(uint n) {
@@ -98,7 +98,7 @@ void main() {
 	float ambient = 0.2;
 
 
-	vec3 albedo = waterColor;
+	vec3 albedo = waterColour;
 
 	float distFromCamera = length(viewPos);
 	float fogStart = maxViewDistance - fogEncroach;
@@ -116,12 +116,12 @@ void main() {
 	
 	float fresnel = pow(1 - dot(viewDir, normal), 3.0);
 	vec3 reflectDir = normalize(reflect(-viewDir, normal));
-	vec3 reflectColor = texture(skybox, reflectDir).xyz;
+	vec3 reflectColour = texture(skybox, reflectDir).xyz;
 
 	fresnel = clamp(fresnel, 0.0, 1.0);
-	litAlbedo = fresnel * reflectColor + (1 - fresnel) * litAlbedo + spec * sunColor;
+	litAlbedo = fresnel * reflectColour + (1 - fresnel) * litAlbedo + spec * sunColour;
 
-	vec3 finalColor = (1 - fogStrength) * litAlbedo + fogStrength * texture(skybox, skyboxSample).xyz;
+	vec3 finalColour = (1 - fogStrength) * litAlbedo + fogStrength * texture(skybox, skyboxSample).xyz;
 
-	FragColor = vec4(finalColor, 1);
+	FragColour = vec4(finalColour, 1);
 }

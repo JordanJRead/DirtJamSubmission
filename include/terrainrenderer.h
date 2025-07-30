@@ -30,7 +30,7 @@ public:
 	TerrainRenderer(int screenWidth, int screenHeight, const glm::vec3& cameraPos,
 		int chunkWidth, int chunkCount, const ArtisticParamsData& artistParams, const TerrainParamsData& terrainParams, const WaterParamsData& waterParams, const ColourBufferData& colours,
 		std::array<int, ImageCount> imagePixelDims, std::array<float, ImageCount> imageWorldSizes, std::array<glm::vec2, ImageCount> imageWorldPositions,
-		int lowQualityPlaneVerticesPerEdge, int highQualityPlaneVerticesPerEdgeScale, float vertexQualityDropoffDistance, float waterHeight)
+		int lowQualityPlaneVerticesPerEdge, int highQualityPlaneVerticesPerEdgeScale, float vertexQualityDropoffDistance, float waterHeight, float dayTime)
 		: mChunkWidth{ chunkWidth }
 		, mChunkCount{ chunkCount }
 		
@@ -87,9 +87,8 @@ public:
 				"assets/AllSkyFree/Night MoonBurst/Night Moon Burst_Cam_0_Front+Z.png",
 				"assets/AllSkyFree/Night MoonBurst/Night Moon Burst_Cam_1_Back-Z.png"
 			} }
+		, mDayTime{ dayTime }
 	{
-		mDirToLight = glm::normalize(mDirToLight);
-
 		std::vector<float> vertexData{
 		-1, -1,
 		 1, -1,
@@ -108,13 +107,14 @@ public:
 		mScreenQuad.create(vertexData, indices, attribs);
 
 		// Set shader uniforms
+		glm::vec3 dirToSun{ getDirToSun() };
 		mWaterShader.use();
 		mWaterShader.setInt("skybox", 7);
-		mWaterShader.setVector3("dirToLight", mDirToLight);
+		mWaterShader.setVector3("dirToLight", dirToSun);
 		mTerrainShader.use();
 		mTerrainShader.setInt("skybox", 7);
 		mTerrainShader.setInt("imageCount", ImageCount);
-		mTerrainShader.setVector3("dirToLight", mDirToLight);
+		mTerrainShader.setVector3("dirToLight", dirToSun);
 		for (int i{ 0 }; i < ImageCount; ++i) {
 			std::string indexString{ std::to_string(i) };
 			mTerrainShader.setInt("images[" + indexString + "]", i);
@@ -126,6 +126,7 @@ public:
 
 		mSkyboxShader.use();
 		mSkyboxShader.setInt("skybox", 7);
+		mSkyboxShader.setVector3("dirToLight", dirToSun);
 	}
 
 	void render(const Camera& camera, double displayDeltaTime, float time) {
@@ -186,10 +187,12 @@ public:
 			}
 		}
 
+		glm::vec3 dirToSun{ getDirToSun() };
 		// Render skybox
 		mSkyboxShader.use();
 		mSkyboxShader.setMatrix4("view", camera.getViewMatrix());
 		mSkyboxShader.setMatrix4("proj", camera.getProjectionMatrix());
+		mSkyboxShader.setVector3("dirToLight", dirToSun);
 		mDaySkybox.bindTexture(7);
 		mCubeVertices.useVertexArray();
 		glDisable(GL_DEPTH_TEST);
@@ -201,11 +204,13 @@ public:
 		mTerrainShader.setMatrix4("proj", camera.getProjectionMatrix());
 		mTerrainShader.setVector3("cameraPos", camera.getPosition());
 		mTerrainShader.setFloat("waterHeight", mWaterHeight);
+		mTerrainShader.setVector3("dirToLight", dirToSun);
 		mWaterShader.use();
 		mWaterShader.setMatrix4("view", camera.getViewMatrix());
 		mWaterShader.setMatrix4("proj", camera.getProjectionMatrix());
 		mWaterShader.setVector3("cameraPos", camera.getPosition());
 		mWaterShader.setFloat("time", time);
+		mWaterShader.setVector3("dirToLight", dirToSun);
 		for (int i{ 0 }; i < mImages.size(); ++i) {
 			mImages[i].bindImage(i);
 		}
@@ -313,7 +318,8 @@ private:
 	Cubemap mDaySkybox;
 	Cubemap mNightSkybox;
 	CubeVertices mCubeVertices;
-	glm::vec3 mDirToLight{ -0.008373, 0.089878, 0.995917 };
+	float mDayTime;
+	//glm::vec3 mDirToLight{ -0.008373, 0.089878, 0.995917 };
 
 	Plane mLowQualityPlane;
 	Plane mHighQualityPlane;
@@ -344,6 +350,10 @@ private:
 		ImGui::DragInt("High quality plane quality scale", &mHighQualityPlaneVerticesPerEdgeScale, 1, 2, 1000);
 		ImGui::DragFloat("Vertex LOD dist", &mVertexQualityDropoffDistance, 1, 1, 1000);
 		ImGui::DragFloat("Water height", &mWaterHeight, 0.1);
+		ImGui::End();
+
+		ImGui::Begin("Day");
+		ImGui::DragFloat("Day time", &mDayTime, 0.001, 0.1, 0.9);
 		ImGui::End();
 
 		ImGui::Begin("Terrain Images");
@@ -420,6 +430,11 @@ private:
 
 		finalOutput.x += offset.x;
 		return finalOutput.x;
+	}
+
+	glm::vec3 getDirToSun() {
+		float theta{ mDayTime * glm::pi<float>() };
+		return glm::vec3{ glm::cos(theta), glm::sin(theta), 0 };
 	}
 };
 
