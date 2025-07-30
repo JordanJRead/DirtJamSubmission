@@ -219,7 +219,7 @@ void main() {
 		if (wet == 0)
 			albedo = shallowEnough ? shellAlbedo : groundAlbedo;
 		else {
-			albedo = dirtAlbedo * (1 - wet) + wetDirtAlbedo * wet;
+			albedo = groundAlbedo - wet * groundAlbedo * 0.4;
 		}
 	}
 
