@@ -3,6 +3,7 @@
 
 #include "OpenGLObjects/BUF.h"
 #include "shaderguipair.h"
+#include "glm/glm.hpp"
 
 struct WaterParamsData {
 	int waveCount;
@@ -12,6 +13,8 @@ struct WaterParamsData {
 	float freqMult;
 	float initialSpeed;
 	float speedMult;
+	float specularExponent;
+	glm::vec3 sunColor;
 };
 
 class WaterParamsBuffer {
@@ -24,9 +27,11 @@ public:
 		, mFreqMult{ data.freqMult }
 		, mInitialSpeed{ data.initialSpeed }
 		, mSpeedMult{ data.speedMult }
+		, mSpecularExponent{ data.specularExponent }
+		, mSunColor{ data.sunColor }
 	{
 		glBindBuffer(GL_UNIFORM_BUFFER, mBUF);
-		glBufferData(GL_UNIFORM_BUFFER, sizeof(int) + 6 * sizeof(float), nullptr, GL_STATIC_DRAW);
+		glBufferData(GL_UNIFORM_BUFFER, sizeof(int) + 7 * sizeof(float) + 4 * sizeof(float), nullptr, GL_STATIC_DRAW);
 		glBindBufferBase(GL_UNIFORM_BUFFER, 2, mBUF);
 		updateGPU(true);
 	}
@@ -43,6 +48,8 @@ private:
 	ShaderGUIPair<float> mFreqMult;
 	ShaderGUIPair<float> mInitialSpeed;
 	ShaderGUIPair<float> mSpeedMult;
+	ShaderGUIPair<float> mSpecularExponent;
+	ShaderGUIPair<glm::vec3> mSunColor;
 };
 
 #endif

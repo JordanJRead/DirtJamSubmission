@@ -8,6 +8,7 @@ out vec4 FragColor;
 uniform float time;
 uniform samplerCube skybox;
 uniform vec3 cameraPos;
+uniform vec3 dirToLight;
 
 layout(std140, binding = 1) uniform ArtisticParams {
 	uniform float terrainScale;
@@ -29,6 +30,8 @@ layout(std140, binding = 2) uniform WaterParams {
 	uniform float freqMult;
 	uniform float initialSpeed;
 	uniform float speedMult;
+	uniform float specExp;
+	uniform vec3 sunColor;
 };
 
 uint rand(uint n) {
@@ -72,14 +75,20 @@ vec3 getWaterHeight(vec2 pos) {
 }
 
 void main() {
-	// Lighting
+	// Water
 	vec2 flatWorldPos = worldPos3.xz;
 	vec3 waterInfo = getWaterHeight(flatWorldPos);
+
+	// Lighting
 	vec3 normal = normalize(vec3(-waterInfo.y, 1, -waterInfo.z));
-	vec3 lightDir = normalize(vec3(0, 1, 0));
-	float diffuse = max(0, dot(lightDir, normal));
-	//diffuse = 1;
-	float ambient = 0;
+	float diffuse = max(0, dot(dirToLight, normal));
+
+	vec3 viewDir = normalize(cameraPos - worldPos3);
+	vec3 halfWay = normalize(viewDir + dirToLight);
+	float spec = pow(max(dot(normal, halfWay), 0), specExp);
+
+	float ambient = 0.2;
+
 
 	vec3 albedo = vec3(0, 0.1, 0.5);
 
@@ -97,13 +106,12 @@ void main() {
 	vec3 skyboxSample = worldPos3 - cameraPos;
 	vec3 litAlbedo = (diffuse + ambient) * albedo;
 	
-	vec3 viewDir = normalize(cameraPos - worldPos3);
 	float fresnel = pow(1 - dot(viewDir, normal), 3.0);
 	vec3 reflectDir = normalize(reflect(-viewDir, normal));
 	vec3 reflectColor = texture(skybox, reflectDir).xyz;
 
 	fresnel = clamp(fresnel, 0.0, 1.0);
-	litAlbedo = fresnel * reflectColor + (1 - fresnel) * litAlbedo;
+	litAlbedo = fresnel * reflectColor + (1 - fresnel) * litAlbedo + spec * sunColor;
 
 	vec3 finalColor = (1 - fogStrength) * litAlbedo + fogStrength * texture(skybox, skyboxSample).xyz;
 

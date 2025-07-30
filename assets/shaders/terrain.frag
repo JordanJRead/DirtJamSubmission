@@ -12,6 +12,7 @@ uniform int imageCount;
 uniform sampler2D images[IMAGECOUNT];
 uniform samplerCube skybox;
 uniform vec3 cameraPos;
+uniform vec3 dirToLight;
 
 // Per whenever they get changed
 uniform float imageScales[IMAGECOUNT];
@@ -188,9 +189,8 @@ void main() {
 	vec3 shellAlbedo = grassAlbedo;
 
 	// Lighting
-	vec3 lightDir = normalize(vec3(0, 1, 0));
-	float diffuse = max(0, dot(lightDir, normal));
-	float ambient = 0;
+	float diffuse = max(0, dot(dirToLight, normal));
+	float ambient = 0.2;
 
 	// Water
 	float wetHeight = 0.4;
@@ -198,7 +198,7 @@ void main() {
 	float wet =  1 - (distAboveWater / wetHeight);
 	wet = clamp(wet, 0.0, 1.0);
 
-	bool shallowEnough = diffuse >= colorDotCutoff;
+	bool shallowEnough = dot(normal, vec3(0, 1, 0)) >= colorDotCutoff;
 
 	// Fog
 	float distFromCamera = length(viewPos);

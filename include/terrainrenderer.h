@@ -86,6 +86,8 @@ public:
 				"assets/AllSkyFree/Night MoonBurst/Night Moon Burst_Cam_1_Back-Z.png"
 			} }
 	{
+		mDirToLight = glm::normalize(mDirToLight);
+
 		std::vector<float> vertexData{
 		-1, -1,
 		 1, -1,
@@ -106,9 +108,11 @@ public:
 		// Set shader uniforms
 		mWaterShader.use();
 		mWaterShader.setInt("skybox", 7);
+		mWaterShader.setVector3("dirToLight", mDirToLight);
 		mTerrainShader.use();
 		mTerrainShader.setInt("skybox", 7);
 		mTerrainShader.setInt("imageCount", ImageCount);
+		mTerrainShader.setVector3("dirToLight", mDirToLight);
 		for (int i{ 0 }; i < ImageCount; ++i) {
 			std::string indexString{ std::to_string(i) };
 			mTerrainShader.setInt("images[" + indexString + "]", i);
@@ -199,7 +203,6 @@ public:
 		mWaterShader.setMatrix4("proj", camera.getProjectionMatrix());
 		mWaterShader.setVector3("cameraPos", camera.getPosition());
 		mWaterShader.setFloat("time", time);
-
 		for (int i{ 0 }; i < mImages.size(); ++i) {
 			mImages[i].bindImage(i);
 		}
@@ -208,6 +211,7 @@ public:
 
 		float minChunkHeight{ getMinHeight() };
 
+		glm::vec3 cameraForward{ camera.getForward() };
 		// For each chunk
  		for (int x{ -mChunkCount / 2 }; x <= mChunkCount / 2; ++x) {
 			for (int z{ -mChunkCount / 2 }; z <= mChunkCount / 2; ++z) {
@@ -221,8 +225,6 @@ public:
 				std::array<float, 2> zVals{ chunkPos.z - mChunkWidth / 2.0, chunkPos.z + mChunkWidth / 2.0 };
 
 				bool isVisible{ false };
-				glm::vec3 cameraForward{ camera.getForward() };
-				cameraForward = {0, 1, 0};
 				for (float x : xVals) {
 					for (float y : yVals) {
 						for (float z : zVals) {
@@ -307,6 +309,7 @@ private:
 	Cubemap mDaySkybox;
 	Cubemap mNightSkybox;
 	CubeVertices mCubeVertices;
+	glm::vec3 mDirToLight{ -0.008373, 0.089878, 0.995917 };
 
 	Plane mLowQualityPlane;
 	Plane mHighQualityPlane;
