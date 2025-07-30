@@ -193,7 +193,12 @@ void main() {
 
 	float mountain = quintic(terrainInfo.a);
 	vec3 groundAlbedo = dirtColor * (1 - mountain) + mountain * mountainColor;
-	vec3 shellAlbedo = grassColor;
+	mountain = quintic(terrainInfo.a);
+	mountain = quintic(terrainInfo.a);
+	mountain = quintic(terrainInfo.a);
+	mountain = quintic(terrainInfo.a);
+	mountain = quintic(terrainInfo.a);
+	vec3 shellAlbedo = grassColor * (1 - mountain) + mountain * snowColor;
 
 	// Lighting
 	float diffuse = max(0, dot(dirToLight, normal));
