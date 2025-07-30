@@ -59,6 +59,17 @@ glm::vec3 Camera::getForward() const {
 }
 
 void Camera::move(GLFWwindow* window, float deltaTime) {
+	if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
+		mSpeed += 10;
+	}
+	if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
+		mSpeed -= 10;
+	}
+
+	if (mSpeed <= 0) {
+		mSpeed = 1;
+	}
+
 	glm::vec3 move{ 0, 0, 0 };
 	glm::vec3 forward{ getForward() };
 	glm::vec3 left{ forward.x, 0, forward.z };
