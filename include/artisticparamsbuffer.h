@@ -38,24 +38,17 @@ public:
 	}
 	void renderUI();
 	void updateGPU(bool force);
-	int getShellCount() const { return mShellCount.mGUI; }
+	int getShellCount() const { return mShellCount.mShader; }
 	float getTerrainScale() const { return mTerrainScale.mGUI; }
-	void lowerShellCount(int newShellCount) {
+	void forceShaderShellCount(int newShellCount) {
 		glBindBuffer(GL_UNIFORM_BUFFER, mBUF);
 		int offset{ 4 * sizeof(float) };
-
 		int size = sizeof(int);
-		mShellCount.mShader = mShellCount.mGUI;
 		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &newShellCount);
 	}
 
 	void fixShellCount() {
-		glBindBuffer(GL_UNIFORM_BUFFER, mBUF);
-		int offset{ 4 * sizeof(float) };
-
-		int size = sizeof(int);
-		mShellCount.mShader = mShellCount.mGUI;
-		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mShellCount.mShader);
+		forceShaderShellCount(mShellCount.mShader);
 	}
 
 private:

@@ -30,7 +30,7 @@ public:
 	TerrainRenderer(int screenWidth, int screenHeight, const glm::vec3& cameraPos,
 		int chunkWidth, int chunkCount, const ArtisticParamsData& artistParams, const TerrainParamsData& terrainParams, const WaterParamsData& waterParams, const ColourBufferData& colours,
 		std::array<int, ImageCount> imagePixelDims, std::array<float, ImageCount> imageWorldSizes, std::array<glm::vec2, ImageCount> imageWorldPositions,
-		int lowQualityPlaneVerticesPerEdge, int highQualityPlaneVerticesPerEdgeScale, float vertexQualityDropoffDistance, float waterHeight, float dayTime)
+		int lowQualityPlaneVerticesPerEdge, int highQualityPlaneVerticesPerEdgeScale, float vertexQualityDropoffDistance, float shellQualityDropoffDistance, float waterHeight, float dayTime)
 		: mChunkWidth{ chunkWidth }
 		, mChunkCount{ chunkCount }
 		
@@ -55,6 +55,7 @@ public:
 		, mImageWorldSizes{ imageWorldSizes }
 
 		, mVertexQualityDropoffDistance{ vertexQualityDropoffDistance }
+		, mShellQualityDropoffDistance{ shellQualityDropoffDistance }
 
 		, mImages{ {
 			{mImagePixelDims[0], mImageWorldSizes[0], screenWidth, screenHeight, getClosestWorldPixelPos(cameraPos, 0)},
@@ -252,23 +253,41 @@ public:
 
 				if (isVisible) {
 					float chunkDist{ glm::length(chunkPos - camera.getPosition()) };
-					Plane& currPlane{ chunkDist > mVertexQualityDropoffDistance ? mLowQualityPlane : mHighQualityPlane };
+					bool highQuality{ !(chunkDist > mVertexQualityDropoffDistance) };
+					Plane& currPlane{ highQuality ? mHighQualityPlane : mLowQualityPlane };
 
 					mTerrainShader.setVector3("planePos", { chunkPos.x, 0, chunkPos.z });
 					mTerrainShader.setFloat("planeWorldWidth", mChunkWidth);
 
 					currPlane.useVertexArray();
 
+					// LOD shell count
 					int shellCount{ mArtisticParams.getShellCount() };
+					if (chunkDist > mShellQualityDropoffDistance * 4) {
+						shellCount = mArtisticParams.getShellCount() > 3 ? 3 : mArtisticParams.getShellCount();
+						mArtisticParams.forceShaderShellCount(shellCount);
+					}
+					if (chunkDist > mShellQualityDropoffDistance * 2) {
+						shellCount = mArtisticParams.getShellCount() > 7 ? 7 : mArtisticParams.getShellCount();
+						mArtisticParams.forceShaderShellCount(shellCount);
+					}
+					else if (chunkDist > mShellQualityDropoffDistance) {
+						shellCount = mArtisticParams.getShellCount() > 10 ? 10 : mArtisticParams.getShellCount();
+						mArtisticParams.forceShaderShellCount(shellCount);
+					}
 
+					// Draw terrain
 					// glInstanceID is 1 greater than the shellIndex (base terrain is -1 shell index, first shell is 0 shell index)
 					glDrawElementsInstanced(GL_TRIANGLES, currPlane.getIndexCount(), GL_UNSIGNED_INT, 0, shellCount + 1); // Draw each shell plus the base terrain
 					// I could do each of the plane qualities in one instanced call, but for some reason it is slightly slower
 
+					// Draw water
 					mWaterShader.use();
 					mWaterShader.setVector3("planePos", { chunkPos.x, mWaterHeight, chunkPos.z });
 					mWaterShader.setFloat("planeWorldWidth", mChunkWidth);
 					glDrawElements(GL_TRIANGLES, currPlane.getIndexCount(), GL_UNSIGNED_INT, 0); // Draw each shell plus the base terrain
+
+					mArtisticParams.fixShellCount();
 				}
 			}
 		}
@@ -325,6 +344,7 @@ private:
 	Plane mHighQualityPlane;
 
 	float mVertexQualityDropoffDistance;
+	float mShellQualityDropoffDistance;
 
 	VertexArray mScreenQuad;
 
@@ -349,6 +369,7 @@ private:
 		ImGui::DragInt("Low quality plane vertices", &mLowQualityPlaneVerticesPerEdge, 1, 2, 1000);
 		ImGui::DragInt("High quality plane quality scale", &mHighQualityPlaneVerticesPerEdgeScale, 1, 2, 1000);
 		ImGui::DragFloat("Vertex LOD dist", &mVertexQualityDropoffDistance, 1, 1, 1000);
+		ImGui::DragFloat("Shell LOD dist", &mShellQualityDropoffDistance, 1, 1, 1000);
 		ImGui::DragFloat("Water height", &mWaterHeight, 0.1);
 		ImGui::End();
 
