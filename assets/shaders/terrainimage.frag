@@ -9,7 +9,12 @@ layout(std140, binding = 0) uniform terrainParams {
 	uniform float initialAmplitude;
 	uniform float amplitudeDecay;
 	uniform float spreadFactor;
-	uniform float roughness;
+
+	uniform float mountainFrequency;
+	uniform float mountainExponent;
+	uniform float antiFlatFactor;
+	uniform float dipScale;
+	uniform float dipStrength;
 };
 
 uniform float scale;
@@ -118,20 +123,6 @@ vec3 perlin(vec2 pos, int reroll = 0) {
 	return vec3(noise, tangents.x, tangents.y);
 }
 
-// Lowers the amplitude for terrain points below y=0 to create flat ground
-float amp(float x, float rough) {
-	if (x > 0) {
-		return 1;
-	}
-	return rough / (x * x + rough);
-}
-
-float damp(float x, float rough) {
-	if (x > 0)
-		return 0;
-	return -2 * rough * x / (x * x + rough) / (x * x + rough);
-}
-
 float quintic(float x) {
 	return x < 0.5 ? (16 * x * x * x * x * x) : 1 - pow(-2 * x + 2, 5.0) / 2.0;
 }
@@ -141,25 +132,24 @@ float dquintic(float x) {
 }
 
 vec4 getTerrainInfo(vec2 pos) {
-	vec3 mountain = perlin(pos * 0.2);
+	vec3 mountain = perlin(pos * mountainFrequency);
 	mountain.yz *= scale;
-	mountain.yz *= 0.2;
+	mountain.yz *= mountainFrequency;
 	
-	mountain.yz = 2 * mountain.x * mountain.yz;
-	mountain.x *= mountain.x;
-	mountain.yz = 2 * mountain.x * mountain.yz;
-	mountain.x *= mountain.x;
-	mountain.x = mountain.x * 0.95 + 0.05;
-	mountain.yz = 0.9 * mountain.yz;
+	mountain.yz = mountainExponent * pow(mountain.x, mountainExponent - 1) * mountain.yz;
+	mountain.x = pow(mountain.x, mountainExponent);
+	
+	mountain.yz = (1 - antiFlatFactor) * mountain.yz;
+	mountain.x = mountain.x * (1 - antiFlatFactor) + antiFlatFactor;
 
-	vec3 offset = perlin(pos * 0.08, 1);
+	vec3 offset = perlin(pos * dipScale, 1);
 	
 	offset.yz *= dquintic(offset.x);
 	offset.x = quintic(offset.x);
 	
 	offset.yz *= scale;
-	offset.yz *= 0.08;
-	offset *= 20;
+	offset.yz *= dipScale;
+	offset *= dipStrength;
 
 	vec3 terrainInfo = vec3(0, 0, 0);
 
@@ -177,11 +167,6 @@ vec4 getTerrainInfo(vec2 pos) {
 		spread *= spreadFactor;
 	}
 	terrainInfo.yz *= scale;
-	
-	float amp = amp(terrainInfo.x, roughness);
-	amp = 1;
-	float damp = damp(terrainInfo.x, roughness);
-	damp = 0;
 
 	vec3 finalOutput = vec3(0);
 	finalOutput.x = terrainInfo.x * mountain.x;

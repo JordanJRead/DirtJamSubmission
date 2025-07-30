@@ -2,25 +2,17 @@
 #include "glad/glad.h"
 #include "imgui.h"
 
-//TerrainParamsBuffer::TerrainParamsBuffer(int octaveCount, float initialAmplitude, float amplitudeDecay, float spreadFactor)
-//	: mOctaveCount{ octaveCount }
-//	, mInitialAmplitude{ initialAmplitude }
-//	, mAmplitudeDecay{ amplitudeDecay }
-//	, mSpreadFactor{ spreadFactor }
-//{
-//	glBindBuffer(GL_UNIFORM_BUFFER, mBUF);
-//	glBufferData(GL_UNIFORM_BUFFER, sizeof(int) + 3 * sizeof(float), nullptr, GL_STATIC_DRAW);
-//	glBindBufferBase(GL_UNIFORM_BUFFER, 0, mBUF);
-//	updateGPU(true);
-//}
-
 void TerrainParamsBuffer::renderUI() {
 	ImGui::Begin("Terrain Parameters");
 	ImGui::DragInt("Octave count", &mOctaveCount.mGUI, 0.1, 1, 30);
 	ImGui::DragFloat("Amplitude", &mInitialAmplitude.mGUI, 0.7, 0, 500);
 	ImGui::DragFloat("Amplitude decay", &mAmplitudeDecay.mGUI, 0.0005, 0, 100);
 	ImGui::DragFloat("Spread factor", &mSpreadFactor.mGUI, 0.001, 0, 100);
-	//ImGui::DragFloat("Roughness", &mRoughness.mGUI, 1);
+	ImGui::DragFloat("Mountain frequency", &mMountainFrequency.mGUI, 0.003, 0, 2);
+	ImGui::DragFloat("Mountain exponent", &mMountainExponent.mGUI, 0.01, 0.1, 30);
+	ImGui::DragFloat("Anti flat factor", &mAntiFlatFactor.mGUI, 0.001, 0, 1);
+	ImGui::DragFloat("Dip frequency", &mDipScale.mGUI, 0.001, 0, 2);
+	ImGui::DragFloat("Dip strength", &mDipStrength.mGUI, 1, 0, 1000);
 	ImGui::End();
 }
 
@@ -63,9 +55,41 @@ bool TerrainParamsBuffer::updateGPU(bool force) {
 	offset += size;
 
 	size = sizeof(float);
-	if (mRoughness.hasDiff() || force) {
-		mRoughness.mShader = mRoughness.mGUI;
-		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mRoughness.mShader);
+	if (mMountainFrequency.hasDiff() || force) {
+		mMountainFrequency.mShader = mMountainFrequency.mGUI;
+		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mMountainFrequency.mShader);
+		hasChanged = true;
+	}
+	offset += size;
+
+	size = sizeof(float);
+	if (mMountainExponent.hasDiff() || force) {
+		mMountainExponent.mShader = mMountainExponent.mGUI;
+		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mMountainExponent.mShader);
+		hasChanged = true;
+	}
+	offset += size;
+
+	size = sizeof(float);
+	if (mAntiFlatFactor.hasDiff() || force) {
+		mAntiFlatFactor.mShader = mAntiFlatFactor.mGUI;
+		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mAntiFlatFactor.mShader);
+		hasChanged = true;
+	}
+	offset += size;
+
+	size = sizeof(float);
+	if (mDipScale.hasDiff() || force) {
+		mDipScale.mShader = mDipScale.mGUI;
+		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mDipScale.mShader);
+		hasChanged = true;
+	}
+	offset += size;
+
+	size = sizeof(float);
+	if (mDipStrength.hasDiff() || force) {
+		mDipStrength.mShader = mDipStrength.mGUI;
+		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mDipStrength.mShader);
 		hasChanged = true;
 	}
 	offset += size;

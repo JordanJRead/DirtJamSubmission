@@ -9,7 +9,11 @@ struct TerrainParamsData {
 	float initialAmplitude;
 	float amplitudeDecay;
 	float spreadFactor;
-	float roughness;
+	float mountainFrequency;
+	float mountainExponent;
+	float antiFlatFactor;
+	float dipScale;
+	float dipStrength;
 };
 
 class TerrainParamsBuffer {
@@ -19,10 +23,14 @@ public:
 		, mInitialAmplitude{ data.initialAmplitude }
 		, mAmplitudeDecay{ data.amplitudeDecay }
 		, mSpreadFactor{ data.spreadFactor }
-		, mRoughness{ data.roughness }
+		, mMountainFrequency{ data.mountainFrequency }
+		, mMountainExponent{ data.mountainExponent }
+		, mAntiFlatFactor{ data.antiFlatFactor }
+		, mDipScale{ data.dipScale }
+		, mDipStrength{ data.dipStrength }
 	{
 		glBindBuffer(GL_UNIFORM_BUFFER, mBUF);
-		glBufferData(GL_UNIFORM_BUFFER, sizeof(int) + 4 * sizeof(float), nullptr, GL_STATIC_DRAW);
+		glBufferData(GL_UNIFORM_BUFFER, sizeof(int) + 8 * sizeof(float), nullptr, GL_STATIC_DRAW);
 		glBindBufferBase(GL_UNIFORM_BUFFER, 0, mBUF);
 		updateGPU(true);
 	}
@@ -39,7 +47,11 @@ private:
 	ShaderGUIPair<float> mInitialAmplitude;
 	ShaderGUIPair<float> mAmplitudeDecay;
 	ShaderGUIPair<float> mSpreadFactor;
-	ShaderGUIPair<float> mRoughness;
+	ShaderGUIPair<float> mMountainFrequency;
+	ShaderGUIPair<float> mMountainExponent;
+	ShaderGUIPair<float> mAntiFlatFactor;
+	ShaderGUIPair<float> mDipScale;
+	ShaderGUIPair<float> mDipStrength;
 };
 
 #endif
