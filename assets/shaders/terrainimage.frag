@@ -132,6 +132,14 @@ float damp(float x, float rough) {
 	return -2 * rough * x / (x * x + rough) / (x * x + rough);
 }
 
+float quintic(float x) {
+	return x < 0.5 ? (16 * x * x * x * x * x) : 1 - pow(-2 * x + 2, 5.0) / 2.0;
+}
+
+float dquintic(float x) { 
+	return x < 0.5 ? 80 * x * x * x * x : 80 * (1 - x) * (1 - x) * (1 - x) * (1 - x);
+}
+
 vec4 getTerrainInfo(vec2 pos) {
 	vec3 mountain = perlin(pos * 0.2);
 	mountain.yz *= scale;
@@ -145,9 +153,9 @@ vec4 getTerrainInfo(vec2 pos) {
 	mountain.yz = 0.9 * mountain.yz;
 
 	vec3 offset = perlin(pos * 0.08, 1);
-
-	offset.x = offset.x < 0.5 ? (16*offset.x*offset.x*offset.x*offset.x*offset.x) : 1 - pow(-2 * offset.x + 2, 5.0) / 2.0;
-	offset.yz *= offset.x < 0.5 ? 80 * offset.x * offset.x*offset.x*offset.x : 80 * (offset.x-1)*(offset.x-1)*(offset.x-1)*(offset.x-1);
+	
+	offset.yz *= dquintic(offset.x);
+	offset.x = quintic(offset.x);
 	
 	offset.yz *= scale;
 	offset.yz *= 0.08;

@@ -30,6 +30,14 @@ layout(std140, binding = 1) uniform ArtisticParams {
 	uniform float shellBaseCutoff;
 };
 
+layout(std140, binding = 3) uniform Colours {
+	uniform vec3 dirtColor;
+	uniform vec3 mountainColor;
+	uniform vec3 grassColor;
+	uniform vec3 snowColor;
+	uniform vec3 waterColor;
+};
+
 uniform float waterHeight;
 
 // Per plane
@@ -161,6 +169,10 @@ vec3 perlin(vec2 pos, int reroll = 0) {
 	return vec3(noise, tangents.x, tangents.y);
 }
 
+float quintic(float x) {
+	return x < 0.5 ? (16 * x * x * x * x * x) : 1 - pow(-2 * x + 2, 5.0) / 2.0;
+}
+
 void main() {
 	bool isShell = shellIndex >= 0;
 
@@ -179,14 +191,9 @@ void main() {
 	vec2 shellWorldMiddlePos = vec2(shellGridX / shellDetail, shellGridZ / shellDetail);
 	vec4 shellMiddleTerrainInfo = getTerrainInfo(shellWorldMiddlePos);
 
-	// Colors
-	vec3 dirtAlbedo = vec3(0.61, 0.46, 0.33) * 0.7;
-	vec3 grassAlbedo = vec3(0, 0.5, 0);
-	vec3 snowAlbedo = vec3(1, 1, 1);
-	vec3 rockAlbedo = vec3(0.4, 0.4, 0.4) * 1.5;
-
-	vec3 groundAlbedo = dirtAlbedo * (1 - terrainInfo.a) + terrainInfo.a * rockAlbedo;
-	vec3 shellAlbedo = grassAlbedo;
+	float mountain = quintic(terrainInfo.a);
+	vec3 groundAlbedo = dirtColor * (1 - mountain) + mountain * mountainColor;
+	vec3 shellAlbedo = grassColor;
 
 	// Lighting
 	float diffuse = max(0, dot(dirToLight, normal));

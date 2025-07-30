@@ -34,6 +34,14 @@ layout(std140, binding = 2) uniform WaterParams {
 	uniform vec3 sunColor;
 };
 
+layout(std140, binding = 3) uniform Colours {
+	uniform vec3 dirtColor;
+	uniform vec3 mountainColor;
+	uniform vec3 grassColor;
+	uniform vec3 snowColor;
+	uniform vec3 waterColor;
+};
+
 uint rand(uint n) {
 	uint state = n * 747796405u + 2891336453u;
 	uint word = ((state >> ((state >> 28u) + 4u)) ^ state) * 277803737u;
@@ -90,7 +98,7 @@ void main() {
 	float ambient = 0.2;
 
 
-	vec3 albedo = vec3(0, 0.1, 0.5);
+	vec3 albedo = waterColor;
 
 	float distFromCamera = length(viewPos);
 	float fogStart = maxViewDistance - fogEncroach;

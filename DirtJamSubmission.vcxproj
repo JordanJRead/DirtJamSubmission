@@ -144,6 +144,7 @@
     <ClCompile Include="src\app.cpp" />
     <ClCompile Include="src\artisticparamsbuffer.cpp" />
     <ClCompile Include="src\camera.cpp" />
+    <ClCompile Include="src\colourbuffer.cpp" />
     <ClCompile Include="src\cubemap.cpp" />
     <ClCompile Include="src\glad.c" />
     <ClCompile Include="src\imgui.cpp" />
@@ -170,6 +171,7 @@
     <ClInclude Include="include\app.h" />
     <ClInclude Include="include\artisticparamsbuffer.h" />
     <ClInclude Include="include\camera.h" />
+    <ClInclude Include="include\colourbuffer.h" />
     <ClInclude Include="include\cubemap.h" />
     <ClInclude Include="include\cubevertices.h" />
     <ClInclude Include="include\imgui\imconfig.h" />

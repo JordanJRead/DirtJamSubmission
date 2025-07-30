@@ -12,6 +12,7 @@
 #include "artisticparamsbuffer.h"
 #include "terrainparamsbuffer.h"
 #include "waterparamsbuffer.h"
+#include "colourbuffer.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
@@ -27,7 +28,7 @@ constexpr int ImageCount{ 4 };
 class TerrainRenderer {
 public:
 	TerrainRenderer(int screenWidth, int screenHeight, const glm::vec3& cameraPos,
-		int chunkWidth, int chunkCount, const ArtisticParamsData& artistParams, const TerrainParamsData& terrainParams, const WaterParamsData& waterParams,
+		int chunkWidth, int chunkCount, const ArtisticParamsData& artistParams, const TerrainParamsData& terrainParams, const WaterParamsData& waterParams, const ColourBufferData& colours,
 		std::array<int, ImageCount> imagePixelDims, std::array<float, ImageCount> imageWorldSizes, std::array<glm::vec2, ImageCount> imageWorldPositions,
 		int lowQualityPlaneVerticesPerEdge, int highQualityPlaneVerticesPerEdgeScale, float vertexQualityDropoffDistance, float waterHeight)
 		: mChunkWidth{ chunkWidth }
@@ -36,6 +37,7 @@ public:
 		, mArtisticParams{ artistParams }
 		, mTerrainParams{ terrainParams }
 		, mWaterParams{ waterParams }
+		, mColours{ colours }
 
 		, mLowQualityPlaneVerticesPerEdge{ lowQualityPlaneVerticesPerEdge }
 		, mHighQualityPlaneVerticesPerEdgeScale{ highQualityPlaneVerticesPerEdgeScale }
@@ -130,6 +132,7 @@ public:
 		bool hasTerrainChanged{ mTerrainParams.updateGPU(false) };
 		mArtisticParams.updateGPU(false);
 		mWaterParams.updateGPU(false);
+		mColours.updateGPU(false);
 		mTerrainShader.use();
 
 		// Update plane types
@@ -292,6 +295,7 @@ private:
 	ArtisticParamsBuffer mArtisticParams;
 	TerrainParamsBuffer mTerrainParams;
 	WaterParamsBuffer mWaterParams;
+	ColourBuffer mColours;
 
 	std::array<int, ImageCount> mImagePixelDims;
 	std::array<float, ImageCount> mImageWorldSizes;
@@ -331,6 +335,7 @@ private:
 		mArtisticParams.renderUI();
 		mTerrainParams.renderUI();
 		mWaterParams.renderUI();
+		mColours.renderUI();
 
 		ImGui::Begin("Plane Chunking");
 		ImGui::DragInt("Width", &mChunkWidth, 1, 1, 100);
