@@ -161,39 +161,40 @@ vec3 perlin(vec2 pos, int reroll = 0) {
 }
 
 void main() {
+	bool isShell = shellIndex >= 0;
 
 	// Terrain
 	vec2 flatWorldPos = groundWorldPos.xz;
 	vec4 terrainInfo = getTerrainInfo(flatWorldPos);
 	vec3 normal = normalize(vec3(-terrainInfo.y, 1, -terrainInfo.z));
 
-	// Color
+	// Shell info
+	vec2 shellCoord = flatWorldPos * shellDetail;
+	int shellGridX = getClosestInt(floor(shellCoord.x));
+	int shellGridZ = getClosestInt(floor(shellCoord.y));
+	float randNum = randToFloat(rand(labelPoint(shellGridX, shellGridZ)));
+	
+	// Terrain at center of shell texel
+	vec2 shellWorldMiddlePos = vec2(shellGridX / shellDetail, shellGridZ / shellDetail);
+	vec4 shellMiddleTerrainInfo = getTerrainInfo(shellWorldMiddlePos);
+
+	// Colors
 	vec3 dirtAlbedo = vec3(0.61, 0.46, 0.33) * 0.7;
-	vec3 wetDirtAlbedo = vec3(0.61, 0.46, 0.33) * 0.4;
 	vec3 grassAlbedo = vec3(0, 0.5, 0);
 	vec3 snowAlbedo = vec3(1, 1, 1);
 	vec3 rockAlbedo = vec3(0.4, 0.4, 0.4) * 1.5;
 
-	float tall = (groundWorldPos.y - 40) / 10.0;
-	tall = clamp(tall, 0.0, 1.0);
 	vec3 groundAlbedo = dirtAlbedo * (1 - terrainInfo.a) + terrainInfo.a * rockAlbedo;
-	
-	vec3 shellAlbedo = grassAlbedo;// * (1 - tall) + tall * snowAlbedo;
+	vec3 shellAlbedo = grassAlbedo;
 
 	// Lighting
 	vec3 lightDir = normalize(vec3(0, 1, 0));
 	float diffuse = max(0, dot(lightDir, normal));
 	float ambient = 0;
 
-	// Texturing
-	vec2 shellCoord = flatWorldPos * shellDetail;
-	int x = getClosestInt(floor(shellCoord.x));
-	int y = getClosestInt(floor(shellCoord.y));
-	float randNum = randToFloat(rand(labelPoint(x, y)));
-	vec2 normGrass = shellCoord - vec2(x, y);
-
+	// Water
 	float wetHeight = 0.4;
-	float distAboveWater = groundWorldPos.y - waterHeight;
+	float distAboveWater = (isShell ? shellMiddleTerrainInfo.x : groundWorldPos.y) - waterHeight;
 	float wet =  1 - (distAboveWater / wetHeight);
 	wet = clamp(wet, 0.0, 1.0);
 
@@ -215,7 +216,7 @@ void main() {
 	vec3 albedo;
 
 	// Regular
-	if (shellIndex < 0) {
+	if (!isShell) {
 		if (wet == 0)
 			albedo = shallowEnough ? shellAlbedo : groundAlbedo;
 		else {
@@ -228,7 +229,7 @@ void main() {
 		float shellProgress = float(shellIndex + 1) / shellCount;
 		float shellCutoff = shellBaseCutoff + shellProgress * (shellMaxCutoff - shellBaseCutoff);
 		float circleDist = (1 - shellProgress) / 2.0;
-		if (!shallowEnough || randNum < shellCutoff || wet > 0)// || length(vec2(0.5, 0.5) - normGrass) > circleDist) // If doing cones
+		if (!shallowEnough || randNum < shellCutoff || wet > 0)
 			discard;
 			
 		albedo = shellAlbedo + shellAlbedo * shellProgress * 0.1;
