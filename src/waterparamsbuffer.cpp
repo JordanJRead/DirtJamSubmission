@@ -12,7 +12,6 @@ void WaterParamsBuffer::renderUI() {
 	ImGui::DragFloat("Initial speed", &mInitialSpeed.mGUI, 0.02, 0, 20);
 	ImGui::DragFloat("Speed multiplier", &mSpeedMult.mGUI, 0.007, 0, 2);
 	ImGui::DragFloat("Shininess", &mSpecularExponent.mGUI);
-	ImGui::ColorPicker3("Sun color", &(mSunColor.mGUI.x));
 	ImGui::End();
 }
 
@@ -82,14 +81,6 @@ bool WaterParamsBuffer::updateGPU(bool force) {
 	if (mSpecularExponent.hasDiff() || force) {
 		mSpecularExponent.mShader = mSpecularExponent.mGUI;
 		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mSpecularExponent.mShader);
-		hasChanged = true;
-	}
-	offset += size;
-
-	size = sizeof(float) * 4;
-	if (mSunColor.hasDiff() || force) {
-		mSunColor.mShader = mSunColor.mGUI;
-		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mSunColor.mShader);
 		hasChanged = true;
 	}
 	offset += size;

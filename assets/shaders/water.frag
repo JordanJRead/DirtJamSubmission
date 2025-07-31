@@ -31,7 +31,6 @@ layout(std140, binding = 2) uniform WaterParams {
 	uniform float initialSpeed;
 	uniform float speedMult;
 	uniform float specExp;
-	uniform vec3 sunColour;
 };
 
 layout(std140, binding = 3) uniform Colours {
@@ -40,6 +39,7 @@ layout(std140, binding = 3) uniform Colours {
 	uniform vec3 grassColour;
 	uniform vec3 snowColour;
 	uniform vec3 waterColour;
+	uniform vec3 sunColour;
 };
 
 uint rand(uint n) {

@@ -18,7 +18,7 @@ App::App(int screenWidth, int screenHeight, GLFWwindow* window)
 	, mWindow{ window }
 	, mScreenWidth{ screenWidth }
 	, mScreenHeight{ screenHeight }
-	, mTerrainRenderer{ screenWidth, screenHeight, mCamera.getPosition(), 16, 40, ArtisticParamsData{ 22, 328, 68, 0.875, 12, 0.117, 100, 1, 0.2 }, TerrainParamsData{ 15, 80, 0.4, 2, 0.2, 4, 0.04, 0.08, 20 }, WaterParamsData{ 24, 0.07, 0.82, 1, 1.13, 2, 1.07, 200, {1, 1, 1} }, ColourBufferData{ {0.43, 0.32, 0.23}, {0.6, 0.6, 0.6}, {0, 0.5, 0}, {1, 1, 1}, {0, 0.1, 0.5} }, {2500, 2500, 2500, 2500}, {1, 4, 12, 36}, std::array<glm::vec2, 4> {glm::vec2{0}, glm::vec2{0}, glm::vec2{0}}, 20, 6, 110, 45, 8.3, 0.5 }
+	, mTerrainRenderer{ screenWidth, screenHeight, mCamera.getPosition(), 16, 40, ArtisticParamsData{ 22, 328, 68, 0.875, 12, 0.117, 100, 1, 0.2 }, TerrainParamsData{ 15, 80, 0.4, 2, 0.2, 4, 0.04, 0.08, 20 }, WaterParamsData{ 24, 0.07, 0.82, 1, 1.13, 2, 1.07, 200 }, ColourBufferData{ {0.43, 0.32, 0.23}, {0.6, 0.6, 0.6}, {0, 0.5, 0}, {1, 1, 1}, {0, 0.1, 0.5}, {1, 1, 1} }, {2500, 2500, 2500, 2500}, {1, 4, 12, 36}, std::array<glm::vec2, 4> {glm::vec2{0}, glm::vec2{0}, glm::vec2{0}}, 20, 6, 110, 45, 8.3, 0.5 }
 {
 	glfwSetWindowUserPointer(mWindow, this);
 	glfwSetCursorPosCallback(mWindow, mouseCallback);

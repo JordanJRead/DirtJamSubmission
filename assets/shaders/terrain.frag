@@ -36,6 +36,7 @@ layout(std140, binding = 3) uniform Colours {
 	uniform vec3 grassColor;
 	uniform vec3 snowColor;
 	uniform vec3 waterColor;
+	uniform vec3 sunColour;
 };
 
 layout(std140, binding = 2) uniform WaterParams {
@@ -47,7 +48,6 @@ layout(std140, binding = 2) uniform WaterParams {
 	uniform float initialSpeed;
 	uniform float speedMult;
 	uniform float specExp;
-	uniform vec3 sunColour;
 };
 
 uniform float waterHeight;

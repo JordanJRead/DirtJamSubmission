@@ -11,6 +11,7 @@ struct ColourBufferData {
 	glm::vec3 grassColor;
 	glm::vec3 snowColor;
 	glm::vec3 waterColor;
+	glm::vec3 sunColor;
 };
 
 class ColourBuffer {
@@ -21,9 +22,10 @@ public:
 		, mGrassColour{ data.grassColor }
 		, mSnowColour{ data.snowColor }
 		, mWaterColour{ data.waterColor }
+		, mSunColour{ data.sunColor }
 	{
 		glBindBuffer(GL_UNIFORM_BUFFER, mBUF);
-		glBufferData(GL_UNIFORM_BUFFER, 5 * 4 * sizeof(float), nullptr, GL_STATIC_DRAW);
+		glBufferData(GL_UNIFORM_BUFFER, 6 * 4 * sizeof(float), nullptr, GL_STATIC_DRAW);
 		glBindBufferBase(GL_UNIFORM_BUFFER, 3, mBUF);
 		updateGPU(true);
 	}
@@ -38,6 +40,7 @@ private:
 	ShaderGUIPair<glm::vec3> mGrassColour;
 	ShaderGUIPair<glm::vec3> mSnowColour;
 	ShaderGUIPair<glm::vec3> mWaterColour;
+	ShaderGUIPair<glm::vec3> mSunColour;
 };
 
 #endif

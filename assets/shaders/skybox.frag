@@ -16,6 +16,14 @@ layout(std140, binding = 2) uniform WaterParams {
 	uniform float initialSpeed;
 	uniform float speedMult;
 	uniform float specExp;
+};
+
+layout(std140, binding = 3) uniform Colours {
+	uniform vec3 dirtColor;
+	uniform vec3 mountainColor;
+	uniform vec3 grassColor;
+	uniform vec3 snowColor;
+	uniform vec3 waterColor;
 	uniform vec3 sunColour;
 };
 

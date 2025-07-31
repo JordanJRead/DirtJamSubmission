@@ -9,6 +9,7 @@ void ColourBuffer::renderUI() {
 	ImGui::ColorPicker3("Grass", &(mGrassColour.mGUI.x));
 	ImGui::ColorPicker3("Snow", &(mSnowColour.mGUI.x));
 	ImGui::ColorPicker3("Water", &(mWaterColour.mGUI.x));
+	ImGui::ColorPicker3("Sun", &(mSunColour.mGUI.x));
 	ImGui::End();
 }
 
@@ -54,6 +55,14 @@ bool ColourBuffer::updateGPU(bool force) {
 	if (mWaterColour.hasDiff() || force) {
 		mWaterColour.mShader = mWaterColour.mGUI;
 		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mWaterColour.mShader);
+		hasChanged = true;
+	}
+	offset += size;
+
+	size = 4 * sizeof(float);
+	if (mSunColour.hasDiff() || force) {
+		mSunColour.mShader = mSunColour.mGUI;
+		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mSunColour.mShader);
 		hasChanged = true;
 	}
 	offset += size;
