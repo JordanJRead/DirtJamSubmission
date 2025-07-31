@@ -70,7 +70,7 @@ vec2 quinticDerivative(vec2 t) {
 	return vec2(30) * t * t * (t * (t - vec2(2)) + vec2(1));
 }
 
-vec3 perlin(vec2 pos, int reroll = 0) {
+vec3 perlin(vec2 pos, int reroll) {
 	int x0 = getClosestInt(floor(pos.x));
 	int x1 = getClosestInt(ceil(pos.x));
 	int y0 = getClosestInt(floor(pos.y));
@@ -132,7 +132,7 @@ float dquintic(float x) {
 }
 
 vec4 getTerrainInfo(vec2 pos) {
-	vec3 mountain = perlin(pos * mountainFrequency);
+	vec3 mountain = perlin(pos * mountainFrequency, 0);
 	mountain.yz *= scale;
 	mountain.yz *= mountainFrequency;
 	
@@ -158,7 +158,7 @@ vec4 getTerrainInfo(vec2 pos) {
 
 	for (int i = 0; i < octaveCount; ++i) {
 		vec2 samplePos = pos * spread;
-		vec3 perlinData = perlin(samplePos);
+		vec3 perlinData = perlin(samplePos, 0);
 
 		terrainInfo.x += amplitude * perlinData.x;
 		terrainInfo.yz += amplitude * perlinData.yz * spread;
