@@ -1,6 +1,6 @@
 # Submission for Acerola's Dirt Jam (https://itch.io/jam/acerola-dirt-jam)
 ## Overview
-A fractional brownian motion based terrain generator that uses LOD, plane chunking, frustum culling, and terrain pre-computation in order to run at about 60 FPS. It also uses shell texturing for rendering grass, sun of sines to render water, a skybox for water reflections, and many different levels of perlin noise to create different geological features. It also has lots of parameters for the terrain, water, and colours.
+A fractional brownian motion based terrain generator that uses LOD, plane chunking, frustum culling, and terrain pre-computation in order to run at about 60 FPS (on my devices). It also uses shell texturing for rendering grass, sun of sines to render water, a skybox for water reflections, and many different levels of perlin noise to create different geological features. It also has lots of parameters for the terrain, water, and colours.
 
 Skybox(es) from https://assetstore.unity.com/packages/2d/textures-materials/sky/allsky-free-10-sky-skybox-set-146014
 ### Controls
