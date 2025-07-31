@@ -185,6 +185,10 @@ float quintic(float x) {
 	return x < 0.5 ? (16 * x * x * x * x * x) : 1 - pow(-2 * x + 2, 5.0) / 2.0;
 }
 
+float expo(float x) {
+	return x == 1 ? 1 : 1 - pow(2.0, -10.0 * x);
+}
+
 void main() {
 	bool isShell = shellIndex >= 0;
 
@@ -205,11 +209,8 @@ void main() {
 
 	float mountain = quintic(terrainInfo.a);
 	vec3 groundAlbedo = dirtColor * (1 - mountain) + mountain * mountainColor;
-	mountain = quintic(terrainInfo.a);
-	mountain = quintic(terrainInfo.a);
-	mountain = quintic(terrainInfo.a);
-	mountain = quintic(terrainInfo.a);
-	mountain = quintic(terrainInfo.a);
+	mountain = quintic(mountain);
+	mountain = expo(mountain);
 	vec3 shellAlbedo = grassColor * (1 - mountain) + mountain * snowColor;
 
 	// Lighting
