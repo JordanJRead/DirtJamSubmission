@@ -38,6 +38,18 @@ layout(std140, binding = 3) uniform Colours {
 	uniform vec3 waterColor;
 };
 
+layout(std140, binding = 2) uniform WaterParams {
+	uniform int waveCount;
+	uniform float initialAmplitude;
+	uniform float amplitudeMult;
+	uniform float initialFreq;
+	uniform float freqMult;
+	uniform float initialSpeed;
+	uniform float speedMult;
+	uniform float specExp;
+	uniform vec3 sunColour;
+};
+
 uniform float waterHeight;
 
 // Per plane
@@ -203,12 +215,16 @@ void main() {
 	// Lighting
 	float diffuse = max(0, dot(dirToLight, normal));
 	float ambient = 0.2;
+	vec3 viewDir = normalize(cameraPos - groundWorldPos);
+	vec3 halfWay = normalize(viewDir + dirToLight);
+	float spec = isShell ? 0 : pow(max(dot(normal, halfWay), 0), specExp);
 
 	// Water
 	float wetHeight = 0.4;
 	float distAboveWater = (isShell ? shellMiddleTerrainInfo.x : groundWorldPos.y) - waterHeight;
 	float wet =  1 - (distAboveWater / wetHeight);
 	wet = clamp(wet, 0.0, 1.0);
+	spec *= wet * wet;
 
 	bool shallowEnough = dot(normal, vec3(0, 1, 0)) >= colorDotCutoff;
 
@@ -247,7 +263,7 @@ void main() {
 		albedo = shellAlbedo + shellAlbedo * shellProgress * 0.1;
 	}
 
-	vec3 litAlbedo = (diffuse + ambient) * albedo;
+	vec3 litAlbedo = (diffuse + ambient) * albedo + spec * sunColour;
 	vec3 skyboxSample = shellWorldPos - cameraPos;
 	vec3 finalColor = (1 - fogStrength) * litAlbedo + fogStrength * texture(skybox, skyboxSample).xyz;
 	FragColor = vec4(finalColor, 1);
