@@ -35,6 +35,10 @@ private:
 				glfwSetInputMode(app.mWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 			app.mIsCursorHidden = !app.mIsCursorHidden;
 		}
+
+		if (key == GLFW_KEY_H && action == GLFW_PRESS) {
+			app.mTerrainRenderer.toggleUI();
+		}
 	}
 	void handleInput();
 };

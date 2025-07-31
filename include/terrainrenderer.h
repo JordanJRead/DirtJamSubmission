@@ -292,7 +292,8 @@ public:
 			}
 		}
 
-		renderUI(displayDeltaTime);
+		if (mIsUIVisible)
+			renderUI(displayDeltaTime);
 	}
 
 	glm::vec3 getClosestWorldPixelPos(const glm::vec3 pos, int imageIndex) {
@@ -309,6 +310,10 @@ public:
 		return stepSizesAway * stepSize;
 	}
 
+	void toggleUI() {
+		mIsUIVisible = !mIsUIVisible;
+	}
+
 private:
 	// The chunk collection consists of a square of chunkCount * chunkCount chunks, each having a width of chunkWidth
 
@@ -320,6 +325,7 @@ private:
 	TerrainParamsBuffer mTerrainParams;
 	WaterParamsBuffer mWaterParams;
 	ColourBuffer mColours;
+	bool mIsUIVisible{ true };
 
 	std::array<int, ImageCount> mImagePixelDims;
 	std::array<float, ImageCount> mImageWorldSizes;
