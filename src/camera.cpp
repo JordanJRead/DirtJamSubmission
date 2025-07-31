@@ -60,10 +60,10 @@ glm::vec3 Camera::getForward() const {
 
 void Camera::move(GLFWwindow* window, float deltaTime) {
 	if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
-		mSpeed += 10;
+		mSpeed += 100 * deltaTime;
 	}
 	if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
-		mSpeed -= 10;
+		mSpeed -= 100 * deltaTime;
 	}
 
 	if (mSpeed <= 0) {
