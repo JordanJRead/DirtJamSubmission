@@ -7,6 +7,7 @@ Skybox(es) from https://assetstore.unity.com/packages/2d/textures-materials/sky/
 WASD for movement, space to go up, left shift and c to go down, H to toggle the GUI, and hold Q and E to change the camera's speed.
 ## Videos and Images
 Videos are low quality because of github's file size restrictions
+
 Flyover:
 
 https://github.com/user-attachments/assets/fe5f0c8c-fe5b-4d0b-9dea-3983c23f07b8
@@ -32,6 +33,8 @@ Images:
 <img width="1908" height="1069" alt="oceanview" src="https://github.com/user-attachments/assets/2de2dbbf-bc64-4004-8e11-86099b466e92" />
 
 <img width="1885" height="1057" alt="mountainpeak" src="https://github.com/user-attachments/assets/9ed382b9-849c-4ae1-8623-787ccf446ded" />
+
+<img width="1912" height="1063" alt="grass" src="https://github.com/user-attachments/assets/20339cde-b928-4e55-a4b8-b8694cc113bc" />
 
 <img width="1904" height="1060" alt="view" src="https://github.com/user-attachments/assets/fe84d5cb-260c-4b08-b4c1-e3e60a534de9" />
 
