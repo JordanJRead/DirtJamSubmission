@@ -26,6 +26,7 @@ layout(std140, binding = 1) uniform ArtisticParams {
 	uniform float shellDetail;
 	uniform float shellMaxCutoff;
 	uniform float shellBaseCutoff;
+	uniform float snowHeight;
 };
 
 // Per frame

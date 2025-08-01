@@ -2,24 +2,6 @@
 #include "glad/glad.h"
 #include <imgui.h>
 
-ArtisticParamsBuffer::ArtisticParamsBuffer(float terrainScale, float maxFogDist, float fogEncroach, float colorDotCutoff, int shellCount, float shellMaxHeight, float shellDetail, float shellMaxCutoff, float shellBaseCutoff)
-	: mTerrainScale{ terrainScale }
-	, mMaxViewDistance{ maxFogDist }
-	, mFogEncroach{ fogEncroach }
-	, mColorDotCutoff{ colorDotCutoff }
-	, mShellCount{ shellCount }
-	, mShellMaxHeight{ shellMaxHeight }
-	, mShellDetail{ shellDetail }
-	, mShellMaxCutoff{ shellMaxCutoff }
-	, mShellBaseCutoff{ shellBaseCutoff }
-{
-	glBindBuffer(GL_UNIFORM_BUFFER, mBUF);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(int) + 8 * sizeof(float), nullptr, GL_STATIC_DRAW);
-	glBindBufferBase(GL_UNIFORM_BUFFER, 1, mBUF);
-
-	updateGPU(true);
-}
-
 void ArtisticParamsBuffer::renderUI() {
 	ImGui::Begin("Artistic Parameters");
 	ImGui::DragFloat("Terrain scale", &mTerrainScale.mGUI);
@@ -31,19 +13,9 @@ void ArtisticParamsBuffer::renderUI() {
 	ImGui::DragFloat("Shell detail", &mShellDetail.mGUI, 1, 1, 1000);
 	ImGui::DragFloat("Shell max cutoff", &mShellMaxCutoff.mGUI, 0.01, 0, 1);
 	ImGui::DragFloat("Shell base cutoff", &mShellBaseCutoff.mGUI, 0.01, 0, 1);
+	ImGui::DragFloat("Snow height", &mSnowHeight.mGUI);
 	ImGui::End();
 }
-
-/*
-	uniform float terrainScale;
-	uniform float maxFogDist;
-	uniform float colorDotCutoff;
-	uniform int shellCount;
-	uniform float shellMaxHeight;
-	uniform float shellDetail;
-	uniform float shellMaxCutoff;
-	uniform float shellBaseCutoff;
-*/
 
 void ArtisticParamsBuffer::updateGPU(bool force) {
 	glBindBuffer(GL_UNIFORM_BUFFER, mBUF);
@@ -110,6 +82,13 @@ void ArtisticParamsBuffer::updateGPU(bool force) {
 	if (mShellBaseCutoff.hasDiff() || force) {
 		mShellBaseCutoff.mShader = mShellBaseCutoff.mGUI;
 		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mShellBaseCutoff.mShader);
+	}
+	offset += size;
+
+	size = sizeof(float);
+	if (mSnowHeight.hasDiff() || force) {
+		mSnowHeight.mShader = mSnowHeight.mGUI;
+		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mSnowHeight.mShader);
 	}
 	offset += size;
 }

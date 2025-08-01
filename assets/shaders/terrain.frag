@@ -28,6 +28,7 @@ layout(std140, binding = 1) uniform ArtisticParams {
 	uniform float shellDetail;
 	uniform float shellMaxCutoff;
 	uniform float shellBaseCutoff;
+	uniform float snowHeight;
 };
 
 layout(std140, binding = 3) uniform Colours {
@@ -129,6 +130,7 @@ void main() {
 	// Terrain
 	vec2 flatWorldPos = groundWorldPos.xz;
 	vec4 terrainInfo = getTerrainInfo(flatWorldPos);
+	float height = groundWorldPos.y;
 	vec3 normal = normalize(vec3(-terrainInfo.y, 1, -terrainInfo.z));
 
 	// Shell info
@@ -141,10 +143,15 @@ void main() {
 	vec2 shellWorldMiddlePos = vec2(shellGridX / shellDetail, shellGridZ / shellDetail);
 	vec4 shellMiddleTerrainInfo = getTerrainInfo(shellWorldMiddlePos);
 
-	float mountain = quintic(terrainInfo.a);
+	float mountain = terrainInfo.a;
 	vec3 groundAlbedo = dirtColor * (1 - mountain) + mountain * mountainColor;
 	mountain = quintic(mountain);
 	mountain = expo(mountain);
+	mountain = quintic(mountain);
+	mountain = quintic(mountain);
+	if (snowHeight > height)
+		mountain = 0;
+
 	vec3 shellAlbedo = grassColor * (1 - mountain) + mountain * snowColor;
 
 	// Lighting

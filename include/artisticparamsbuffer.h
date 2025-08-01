@@ -14,11 +14,11 @@ struct ArtisticParamsData {
 	float shellDetail;
 	float shellMaxCutoff;
 	float shellBaseCutoff;
+	float snowHeight;
 };
 
 class ArtisticParamsBuffer {
 public:
-	ArtisticParamsBuffer(float terrainScale, float maxViewDistance, float fogEncroach, float colorDotCutoff, int shellCount, float shellMaxHeight, float shellDetail, float shellMaxCutoff, float shellBaseCutoff);
 	ArtisticParamsBuffer(const ArtisticParamsData& data)
 		: mTerrainScale{ data.terrainScale }
 		, mMaxViewDistance{ data.maxViewDistance }
@@ -29,9 +29,10 @@ public:
 		, mShellDetail{ data.shellDetail }
 		, mShellMaxCutoff{ data.shellMaxCutoff }
 		, mShellBaseCutoff{ data.shellBaseCutoff }
+		, mSnowHeight{ data.snowHeight }
 	{
 		glBindBuffer(GL_UNIFORM_BUFFER, mBUF);
-		glBufferData(GL_UNIFORM_BUFFER, sizeof(int) + 8 * sizeof(float), nullptr, GL_STATIC_DRAW);
+		glBufferData(GL_UNIFORM_BUFFER, sizeof(int) + 9 * sizeof(float), nullptr, GL_STATIC_DRAW);
 		glBindBufferBase(GL_UNIFORM_BUFFER, 1, mBUF);
 
 		updateGPU(true);
@@ -62,6 +63,7 @@ private:
 	ShaderGUIPair<float> mShellDetail;
 	ShaderGUIPair<float> mShellMaxCutoff;
 	ShaderGUIPair<float> mShellBaseCutoff;
+	ShaderGUIPair<float> mSnowHeight;
 };
 
 #endif
