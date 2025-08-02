@@ -45,12 +45,12 @@ https://github.com/user-attachments/assets/ccba753b-ff0e-43dd-bdfe-8fb4e7acb3c8
 
 Images:
 
-<img width="1908" height="1069" alt="oceanview" src="https://github.com/user-attachments/assets/2de2dbbf-bc64-4004-8e11-86099b466e92" />
+<img width="1863" height="1027" alt="oceanview" src="https://github.com/user-attachments/assets/27d44abe-cc91-4c92-beaf-f3ffb19463db" />
 
-<img width="1885" height="1057" alt="mountainpeak" src="https://github.com/user-attachments/assets/9ed382b9-849c-4ae1-8623-787ccf446ded" />
+<img width="1861" height="1029" alt="mountainview" src="https://github.com/user-attachments/assets/bc1d48d6-44ff-4c8f-ad0e-19ab20971d4d" />
 
-<img width="1912" height="1063" alt="grass" src="https://github.com/user-attachments/assets/20339cde-b928-4e55-a4b8-b8694cc113bc" />
+<img width="1856" height="1022" alt="grass" src="https://github.com/user-attachments/assets/114a775b-9b62-423a-b305-4da00ac8ea02" />
 
-<img width="1904" height="1060" alt="view" src="https://github.com/user-attachments/assets/fe84d5cb-260c-4b08-b4c1-e3e60a534de9" />
+<img width="1869" height="1029" alt="view" src="https://github.com/user-attachments/assets/53fa6d96-6c3e-444d-ae9c-a9d5073a5fa2" />
 
-<img width="1886" height="1054" alt="mountainwall" src="https://github.com/user-attachments/assets/09381fa6-ae8d-4730-8336-baf4382be028" />
+<img width="1867" height="1022" alt="wall" src="https://github.com/user-attachments/assets/0d94dbf7-b875-4810-a0f7-9b2f8c70ea3b" />
