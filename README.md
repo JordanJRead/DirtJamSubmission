@@ -4,7 +4,7 @@ A fractional brownian motion-based infinite terrain generator that uses LOD, pla
 
 Skybox(es) from https://assetstore.unity.com/packages/2d/textures-materials/sky/allsky-free-10-sky-skybox-set-146014
 ### Controls
-WASD for movement, space to go up, left shift and c to go down, H to toggle the GUI, and hold Q and E to change the camera's speed.
+WASD for movement, space to go up, left shift and c to go down, H to toggle the GUI, R to toggle the mouse, and hold Q and E to change the camera's speed.
 ## Videos and Images
 Videos are low quality because of github's file size restrictions
 
