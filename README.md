@@ -1,4 +1,7 @@
 # Submission for Acerola's Dirt Jam (https://itch.io/jam/acerola-dirt-jam)
+
+This repository was what I made my submission to the Acerola Dirt Jam in, which was a game jam-type competition that lasted a month where the goal was to create or modify a terrain generator. This repo has the final submitted version (with some small readme chagnes), but the repo at https://github.com/JordanJRead/Terrain-Game is where I will be adding more features to this project.
+
 ## Overview
 A fractional brownian motion-based infinite terrain generator that uses LOD, plane chunking, frustum culling, and terrain pre-computation in order to run at about 60 FPS (on my devices). It also uses shell texturing for rendering grass, sun of sines to render water, a skybox for water reflections, and many different levels of perlin noise to create different geological features. It also has lots of parameters for the terrain, water, and colours.
 
