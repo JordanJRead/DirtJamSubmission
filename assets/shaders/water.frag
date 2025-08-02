@@ -216,9 +216,10 @@ void main() {
 	float nearTerrainFactor = 1 - (abs(waterInfo.x + planePos.y - terrainInfo.x)) / seafoamStrength;
 	nearTerrainFactor = clamp(nearTerrainFactor, 0.0, 1.0);
 	if (nearTerrainFactor > 0) {
-		float whiteStrength = perlin(flatWorldPos, 0).x;
-		whiteStrength = easeInOutQuint(whiteStrength) * nearTerrainFactor;
-		albedo = vec3(1) * whiteStrength + albedo * (1 - whiteStrength);
+		float whiteStrength = nearTerrainFactor;
+		//float whiteStrength = perlin(flatWorldPos, 0).x;
+		//whiteStrength = easeInOutQuint(whiteStrength) * nearTerrainFactor;
+		albedo = vec3(0.7) * whiteStrength + albedo * (1 - whiteStrength);
 	}
 
 	float distFromCamera = length(viewPos);
