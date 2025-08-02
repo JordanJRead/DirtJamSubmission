@@ -15,6 +15,7 @@ struct ArtisticParamsData {
 	float shellMaxCutoff;
 	float shellBaseCutoff;
 	float snowHeight;
+	float seafoamStrength;
 };
 
 class ArtisticParamsBuffer {
@@ -30,9 +31,10 @@ public:
 		, mShellMaxCutoff{ data.shellMaxCutoff }
 		, mShellBaseCutoff{ data.shellBaseCutoff }
 		, mSnowHeight{ data.snowHeight }
+		, mSeafoamStrength{ data.seafoamStrength }
 	{
 		glBindBuffer(GL_UNIFORM_BUFFER, mBUF);
-		glBufferData(GL_UNIFORM_BUFFER, sizeof(int) + 9 * sizeof(float), nullptr, GL_STATIC_DRAW);
+		glBufferData(GL_UNIFORM_BUFFER, sizeof(int) + 10 * sizeof(float), nullptr, GL_STATIC_DRAW);
 		glBindBufferBase(GL_UNIFORM_BUFFER, 1, mBUF);
 
 		updateGPU(true);
@@ -64,6 +66,7 @@ private:
 	ShaderGUIPair<float> mShellMaxCutoff;
 	ShaderGUIPair<float> mShellBaseCutoff;
 	ShaderGUIPair<float> mSnowHeight;
+	ShaderGUIPair<float> mSeafoamStrength;
 };
 
 #endif

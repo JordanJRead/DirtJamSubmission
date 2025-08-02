@@ -118,11 +118,18 @@ public:
 		mTerrainShader.setVector3("dirToLight", dirToSun);
 		for (int i{ 0 }; i < ImageCount; ++i) {
 			std::string indexString{ std::to_string(i) };
+
+			mTerrainShader.use();
 			mTerrainShader.setInt("images[" + indexString + "]", i);
 			mTerrainShader.setFloat("imageScales[" + indexString + "]", mImageWorldSizes[i]);
 			mTerrainShader.setVector2("imagePositions[" + indexString + "]", mImageWorldPositions[i]);
+
+			mWaterShader.use();
+			mWaterShader.setInt("images[" + indexString + "]", i);
+			mWaterShader.setFloat("imageScales[" + indexString + "]", mImageWorldSizes[i]);
+			mWaterShader.setVector2("imagePositions[" + indexString + "]", mImageWorldPositions[i]);
+
 			mImages[i].updateTexture(mScreenQuad, mTerrainImageShader);
-			mTerrainShader.use();
 		}
 
 		mSkyboxShader.use();
@@ -165,7 +172,13 @@ public:
 			// GUI
 			if (mImages[i].getWorldSize() != mImageWorldSizes[i]) {
 				mImages[i].setWorldSize(mImageWorldSizes[i]);
+
+				mTerrainShader.use();
 				mTerrainShader.setFloat("imageScales[" + indexString + "]", mImageWorldSizes[i]);
+
+				mWaterShader.use();
+				mWaterShader.setFloat("imageScales[" + indexString + "]", mImageWorldSizes[i]);
+
 				hasImageChanged = true;
 			}
 
@@ -178,7 +191,13 @@ public:
 			// The above position calculation
 			if (mImages[i].getWorldPos() != mImageWorldPositions[i]) { // Updated automatically
 				mImages[i].setWorldPos(mImageWorldPositions[i]);
+
+				mTerrainShader.use();
 				mTerrainShader.setVector2("imagePositions[" + indexString + "]", mImageWorldPositions[i]);
+
+				mWaterShader.use();
+				mWaterShader.setVector2("imagePositions[" + indexString + "]", mImageWorldPositions[i]);
+
 				hasImageChanged = true;
 			}
 

@@ -14,6 +14,7 @@ void ArtisticParamsBuffer::renderUI() {
 	ImGui::DragFloat("Shell max cutoff", &mShellMaxCutoff.mGUI, 0.01, 0, 1);
 	ImGui::DragFloat("Shell base cutoff", &mShellBaseCutoff.mGUI, 0.01, 0, 1);
 	ImGui::DragFloat("Snow height", &mSnowHeight.mGUI);
+	ImGui::DragFloat("Seafoam", &mSeafoamStrength.mGUI, 0.01, 0, 10);
 	ImGui::End();
 }
 
@@ -89,6 +90,13 @@ void ArtisticParamsBuffer::updateGPU(bool force) {
 	if (mSnowHeight.hasDiff() || force) {
 		mSnowHeight.mShader = mSnowHeight.mGUI;
 		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mSnowHeight.mShader);
+	}
+	offset += size;
+
+	size = sizeof(float);
+	if (mSeafoamStrength.hasDiff() || force) {
+		mSeafoamStrength.mShader = mSeafoamStrength.mGUI;
+		glBufferSubData(GL_UNIFORM_BUFFER, offset, size, &mSeafoamStrength.mShader);
 	}
 	offset += size;
 }

@@ -8,7 +8,6 @@ in vec3 shellWorldPos;
 out vec4 FragColor;
 
 // Per app probably
-uniform int imageCount;
 uniform sampler2D images[IMAGECOUNT];
 uniform samplerCube skybox;
 uniform vec3 cameraPos;
@@ -29,6 +28,7 @@ layout(std140, binding = 1) uniform ArtisticParams {
 	uniform float shellMaxCutoff;
 	uniform float shellBaseCutoff;
 	uniform float snowHeight;
+	uniform float seafoamStrength;
 };
 
 layout(std140, binding = 3) uniform Colours {
