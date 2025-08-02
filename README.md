@@ -10,22 +10,37 @@ Videos are low quality because of github's file size restrictions
 
 Flyover:
 
-https://github.com/user-attachments/assets/fe5f0c8c-fe5b-4d0b-9dea-3983c23f07b8
+https://github.com/user-attachments/assets/8652fff0-1d58-46a1-bdfd-32bc075aa600
 
 
 Artistic parameters:
 
-https://github.com/user-attachments/assets/4bcc59d6-6d9d-48f2-8cd0-cdb7709977a5
+https://github.com/user-attachments/assets/0c680a98-78df-4082-bee1-74e1984196de
 
 
 Water parameters:
 
-https://github.com/user-attachments/assets/d6b192d3-070f-4b7a-b941-b961201dd609
+https://github.com/user-attachments/assets/db991ef3-4b0d-414d-8825-7045c8824256
 
 
 Terrain paramters:
 
-https://github.com/user-attachments/assets/e4eba9fe-3a91-4d6f-8090-2fddac3da3f1
+https://github.com/user-attachments/assets/7195555f-48c8-41c0-b78d-f2cd6dff5f2d
+
+
+Colour paramters:
+
+https://github.com/user-attachments/assets/1f37484b-7469-4fad-b771-4f6196fa8a1f
+
+
+Optimization parameters:
+
+https://github.com/user-attachments/assets/2ffa11ac-8f8b-4cd5-b61d-6129b665f339
+
+
+Shell parameters:
+
+https://github.com/user-attachments/assets/ccba753b-ff0e-43dd-bdfe-8fb4e7acb3c8
 
 
 Images:
